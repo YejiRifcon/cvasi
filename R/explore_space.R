@@ -289,9 +289,9 @@ explore_space <- function(x,
 
   # find best LLR value, and compare with original LLR (which is per definition = 0)
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (min(par_sample$LLR) < 0) {
+  if (min(par_sample$LLR, na.rm=TRUE) < 0) {
     message("better optimum found in space explorer")
-    best_fit_ind <- which(par_sample$LLR == min(par_sample$LLR))
+    best_fit_ind <- which(par_sample$LLR == min(par_sample$LLR, na.rm=TRUE))
     par_sample$LLR_quality[best_fit_ind] <- "Best fit"
   }
   par_sample[1, "LLR_quality"] <- "Original fit"

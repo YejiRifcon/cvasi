@@ -112,11 +112,11 @@ plot_sd <- function(model_base,
 
   if (!is.null(obs_full)) {
     obs_plot <- obs_full
-    obs_max <- max(obs_max, obs_plot[,2]) #2 = data, observations
+    obs_max <- max(obs_max, obs_plot[,2], na.rm=TRUE) #2 = data, observations
     obs_plot$trial <- as.factor(obs_plot$trial) #trial
   } else if (!is.null(obs_mean)) {
     obs_plot <- obs_mean
-    obs_max <- max(obs_max, obs_plot[,2])
+    obs_max <- max(obs_max, obs_plot[,2], na.rm=TRUE)
     obs_plot$trial <- as.factor(obs_plot$trial) #trial
   } else {
     obs_plot <- NULL
