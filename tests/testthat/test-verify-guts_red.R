@@ -361,7 +361,7 @@ test_that("EFSA LPx propiconazole", {
     GUTS_RED_SD() %>%
       set_param(c(kd=2.179, hb=0.02683, kk=0.1237, z=16.89)) %>%
       set_exposure(exp) %>%
-      epx(level=50) %>%
+      epx(level=50, hmax=0.01, method="ode45") %>%
       dplyr::pull(L.EP50) %>%
       round(digits=0)
   }
@@ -370,7 +370,7 @@ test_that("EFSA LPx propiconazole", {
     GUTS_RED_IT() %>%
       set_param(c(kd=0.7194, hb=0.01579, alpha=17.69, beta=6.7)) %>%
       set_exposure(exp) %>%
-      epx(level=50) %>%
+      epx(level=50, hmax=0.01, method="ode45") %>%
       dplyr::pull(L.EP50) %>%
       round(digits=0)
   }

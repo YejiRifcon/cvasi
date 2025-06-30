@@ -270,6 +270,10 @@ fx_gutsredsd <- function(scenario, ...) {
     scenario@param$hb <- 0
 
   res <- simulate(scenario, ...)
+  if(!num_success(res)) {
+    return(c("L"=NA_real_))
+  }
+
   c("L"=1 - tail(res$S, n=1))
 }
 
@@ -282,6 +286,10 @@ fx_gutsredit <- function(scenario, ...) {
   }
 
   res <- simulate(scenario, ...)
+  if(!num_success(res)) {
+    return(c("L"=NA_real_))
+  }
+
   c("L"=1 - tail(res$S, n=1))
 }
 

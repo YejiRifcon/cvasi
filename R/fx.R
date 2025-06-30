@@ -15,7 +15,12 @@ setMethod("fx", "ScenarioSequence", function(scenario, ...) fx_sequence(scenario
 
 # Use value of state variable at end of simulation to derive effect
 fx_default <- function(scenario, ...) {
-  row <- tail_nm(simulate(scenario, ...))
+  res <- simulate(scenario, ...)
+  if(!num_success(res)) {
+    return(NA)
+  }
+
+  row <- tail_nm(res)
   # setNames() is required if some endpoints are not present in the output
   # of simulate(). in this case the return value would contain columns named
   # `<NA>`, which we want to avoid.

@@ -14,6 +14,12 @@ test_that("default fx", {
   # endpoint not contained in simulation output
   sc <- sc %>% set_endpoints(c("D", "foobar"))
   expect_equal(fx_default(sc), c(sim[c("D")], "foobar"=NA_real_))
+
+  # if simulate() failed for some reason, e.g. the numerical method became instable,
+  # fx() should return `NA`
+  source(test_path("dummy.R"), local = TRUE)
+  fails <- new("DummyScenario", simulate=function(...) NA_real_)
+  expect_true(is.na(fx_default(fails)))
 })
 
 test_that("tail_nm", {

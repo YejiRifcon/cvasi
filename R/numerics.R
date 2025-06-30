@@ -12,6 +12,14 @@ num_error <- function(x) {
   return(status == "error")
 }
 
+num_success <- function(x) {
+  status <- attr(x, "cvasi_status")
+  if(is.null(status))
+    return(FALSE)
+
+  return(status == "success")
+}
+
 # Check if simulation was aborted - only for internal use
 num_aborted <- function(x) {
   diagn <- attr(x, "desolve_diagn")

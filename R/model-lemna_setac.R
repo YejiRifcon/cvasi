@@ -299,6 +299,9 @@ fx_lemna <- function(scenario, ...) {
     stop("endpoint r is incompatible with biomass transfers")
 
   out <- simulate(scenario, ...)
+  if(!num_success(out)) {
+    return(NA)
+  }
 
   efx <- c("BM"=tail(out$BM, 1))
   if(efx_r) # we skip the log() operation if we can
