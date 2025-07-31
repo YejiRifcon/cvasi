@@ -179,7 +179,7 @@ calc_effect <- function(sim, control) {
   rs <- (control - sim) / abs(control) # effect relative to control
   # handle zeroes in control endpoints
   idx_c0 <- control == 0
-  if(any(idx_c0)) {
+  if(any(idx_c0, na.rm=TRUE)) {
     rs[idx_c0]  <- -sign(sim[idx_c0]) * Inf # infinite effect if sim <> 0 but control is zero
     rs[idx_c0 & sim == 0] <- 0      # no effect if control and sim are zero
   }
