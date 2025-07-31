@@ -491,7 +491,7 @@ simulate_batch2 <- function(batch, times, ...) {
 #' metsulfuron %>%
 #'   simulate_batch(treatments)
 simulate_batch <- function(model_base, treatments, param_sample=deprecated(), ...) {
-  #lifecycle::deprecate_soft("1.4.0", "simulate_batch()", details="Please use `simulate(batch())` instead")
+  lifecycle::deprecate_soft("1.5.0", "simulate_batch()", details="Please use `simulate(batch())` instead")
   if(is_present(param_sample)) {
     if(!is.null(param_sample)) {
       lifecycle::deprecate_stop("1.3.0", "simulate_batch(param_sample)")
