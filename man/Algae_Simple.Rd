@@ -26,7 +26,7 @@ basis of either external or internal concentrations (depending on user choice of
 
 The model has two state variables:
 \itemize{
-\item \code{A}, Biomass (ug fresh wt/mL, cells/mL *10^4)
+\item \code{A}, Biomass (µg fresh wt/mL, cells/mL *10^4)
 \item \code{Dw}, scaled internal damage, only takes effect if parameter \code{scaled = 1}
 }
 }
@@ -40,7 +40,7 @@ The model has two state variables:
 }
 \item Concentration response (Toxicodynamics)
 \itemize{
-\item \code{EC_50}, Effect concentration of 50\% inhibition of growth rate (ug L-1)
+\item \code{EC_50}, Effect concentration of 50\% inhibition of growth rate (µg L-1)
 \item \code{b}, slope of concentration effect curve at EC_50 (-)
 \item \code{dose_response}, shape of the dose response curve (0 = logit, 1 = probit)
 }
@@ -84,10 +84,10 @@ enable reporting of external concentration (\code{Cw}) and growth scaling factor
 
 The available output levels are as follows:
 \itemize{
-\item \code{nout >= 1}: \code{Cw} external concentration (ug L-1)
+\item \code{nout >= 1}: \code{Cw} external concentration (µg L-1)
 \item \code{nout >= 2}: \code{f_growth} growth scaling factor (-)
 \item \code{nout >= 3}: \code{dA}, biomass derivative (µg)
-\item \code{nout >= 4}: \code{dDw}, damage concentration derivative (ug L-1)
+\item \code{nout >= 4}: \code{dDw}, damage concentration derivative (µg L-1)
 }
 }
 
@@ -112,7 +112,7 @@ Maximum step length in time suitable for most simulations.
 }
 
 \references{
-Weber D, Schaeffer D, Dorgerloh M, Bruns E, Goerlitz G, Hammel K, Preuss TG
+Weber D, Schaefer D, Dorgerloh M, Bruns E, Goerlitz G, Hammel K, Preuss TG
 and Ratte HT, 2012. Combination of a higher-tier flow-through system and
 population modeling to assess the effects of time-variable exposure of
 isoproturon on the green algae Desmodesmus subspictatus and

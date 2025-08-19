@@ -25,7 +25,7 @@ solver(scenario, ...)
 
 \S4method{solver}{ANY}(scenario, ...)
 
-\S4method{solver}{AlgaeWeber}(scenario, method = "lsoda", hmax = 0.1, ...)
+\S4method{solver}{AlgaeWeber}(scenario, method = "lsoda", hmax = 0.1, nout = 1, ...)
 
 \S4method{solver}{AlgaeTKTD}(scenario, method = "lsoda", hmax = 0.1, ...)
 

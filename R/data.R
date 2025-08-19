@@ -162,16 +162,20 @@
 #' pp. 1-10. \doi{10.1016/j.ecolmodel.2013.01.017}
 "Schmitt2013"
 
-#' An algae scenario
+#' A Weber scenario of algae exposed to isoproturon
 #'
-#' Data are from Weber 2012 publication.
+#' The scenario recreates the conditions of algae species *R. subcapitata* exposed
+#' to isoproturon in a flow-through reactor experiment, see Weber et al. (2012)
+#' publication. Scenario parameters and exposure series were set according to
+#' reported values to represent conditions in reactor A, as depicted in
+#' Figure 4A in Weber et al.
 #'
-#' @seealso [Algae_TKTD]
+#' @seealso [Algae_Weber]
 #' @references
-#' Weber D, Schaeffer D, Dorgerloh M, Bruns E, Goerlitz G, Hammel K, Preuss TG
+#' Weber D, Schaefer D, Dorgerloh M, Bruns E, Goerlitz G, Hammel K, Preuss TG
 #' and Ratte HT, 2012. Combination of a higher-tier flow-through system and
 #' population modeling to assess the effects of time-variable exposure of
 #' isoproturon on the green algae Desmodesmus subspictatus and
 #' Pseudokirchneriella subcapitata. Environmental Toxicology and
 #' Chemistry, 31, 899-908. \doi{10.1002/etc.1765}
-"Rsubcapitata"
+"rsubcapitata"

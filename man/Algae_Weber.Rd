@@ -17,21 +17,32 @@ growth model for algae. The model simulates the development of algal biomass
 under laboratory and environmental conditions and was developed by
 Weber et al. (2012) as cited in EFSA TKTD opinion (2018). The growth of the
 algae population is simulated on the basis of growth rates, which are
-dependent on environmental conditions (radiation, temperature and phosphorus).
+dependent on environmental conditions (radiation, temperature, and phosphorus).
 The toxicodynamic sub-model describes the effects of growth-inhibiting
 substances through a corresponding reduction in the photosynthesis rate on
-the basis of internal concentrations. (the implementation of Weber et al.
-(2012) is followed where units differ with EFSA)
+the basis of internal concentrations.
+}
+\details{
+Deviating from the equations described by Weber et al., this model implementation
+uses a user-defined time-series to represent (environmental) concentrations.
+Therefore, state-variable \code{C} and its differential equation was removed and
+model output \code{C} is identical to the exposure time-series. The implementation
+of Weber et al. (2012) was followed where units differ from EFSA (2018).
 }
 \section{State variables}{
 
-The model has four state variables:
+The model has three state variables:
 \itemize{
-\item \code{A}, Biomass (ug fresh wt/mL, cells/mL *10^4)
-\item \code{Q}, Mass of phosphorous internal (mg P/L, or ug P/mL)
-\item \code{P}, Mass of phosphorous external (mg P/L, or ug P/mL)
-\item \code{C}, external substance concentration (ug/L)
+\item \code{A}, Biomass (µg fresh wt/mL, cells/mL *10^4)
+\item \code{Q}, Mass of phosphorous internal (mg P/L, or µg P/mL)
+\item \code{P}, Mass of phosphorous external (mg P/L, or µg P/mL)
 }
+
+The original model by Weber et al. contains an additional state variable
+\code{C} which models the external stressor concentration. However, the model
+implementation in this packages uses a user-defined time-series to represent
+environmental concentrations.
+Therefore, state variable \code{C} and accompanying parameters are not present here.
 }
 
 \section{Model parameters}{
@@ -40,9 +51,9 @@ The model has four state variables:
 \item Growth model
 \itemize{
 \item \code{mu_max}, Maximum growth rate (d-1)
-\item \code{Q_min}, Minimum intracellular P (ug P/ug fresh wt)
-\item \code{Q_max}, Maximum intracellular P (ug P/ug fresh wt)
-\item \code{v_max}, Maximum P-uptake rate at non-limited growth (ug P/ug fresh wt/d)
+\item \code{Q_min}, Minimum intracellular P (µg P/µg fresh wt)
+\item \code{Q_max}, Maximum intracellular P (µg P/µg fresh wt)
+\item \code{v_max}, Maximum P-uptake rate at non-limited growth (µg P/µg fresh wt/d)
 \item \code{k_s},   Half-saturation constant for extracellular P (mg P/L)
 \item \code{m_max}, Natural mortality rate (1/d)
 \item \code{I_opt}, Optimum light intensity for growth (uE/m²/s)
@@ -54,25 +65,23 @@ The model has four state variables:
 }
 \item Concentration response (Toxicodynamics)
 \itemize{
-\item \code{EC_50}, Effect concentration of 50\% inhibition of growth rate (ug/L)
+\item \code{EC_50}, Effect concentration of 50\% inhibition of growth rate (µg/L)
 \item \code{b}, slope of concentration effect curve at EC_50 (-)
-}
-\item External concentration (Toxicokinetics)
-\itemize{
-\item \code{k}, Degradation rate of toxicant in aquatic environments (d-1)
 }
 }
 }
 
 \section{Forcings}{
 
-Besides exposure events (C_in), the \emph{Algae} model requires three environmental
-properties as time-series input: Irradiance (\code{I}, uE/m²/s)
-and temperature (\code{T_act}, deg C).
+The \emph{Algae} model requires two environmental properties as time-series input:
+\itemize{
+\item Irradiance (\code{I}, uE/m²/s), and
+\item Temperature (\code{T_act}, deg C).
+}
+
 Forcings time-series are represented by \code{data.frame} objects
-consisting of two columns. The first for time and the second for the
-environmental factor in question. The input format for all forcings is a
-list of the data frames.
+consisting of two columns. The first column for time and the second for the
+environmental factor in question. See \link{scenarios} for more details.
 }
 
 \section{Simulation output}{
@@ -85,18 +94,20 @@ It is possible to amend the output of \code{\link[=simulate]{simulate()}} with a
 quantities that are not state variables, for e.g. debugging purposes or to
 analyze model behavior. To enable or disable additional outputs, use the
 optional argument \code{nout} of \code{\link[=simulate]{simulate()}}. As an example, set \code{nout=2} to
-enable reporting of model derivatives \code{dA} and \code{dQ}. Set \code{nout=0} to disable
-additional outputs (default).
+enable reporting of external concentration and model derivative \code{dA}.
+Set \code{nout=0} to disable additional outputs. The default is \code{nout=1}.
 
 The available output levels are as follows:
 \itemize{
-\item Derivatives
-\itemize{
-\item \code{nout >= 1}: \code{dA}, biomass derivative (µg)
-\item \code{nout >= 2}: \code{dQ}, internal phosphorous derivative (mg P/ug fresh wt)
-\item \code{nout >= 3}: \code{dP}, external phosphorous derivative (mg P L-1)
-\item \code{nout >= 4}: \code{dC}, external concentration derivative (ug L-1)
-}
+\item \code{nout >= 1}: \code{C}, external concentration (µg/L)
+\item \code{nout >= 2}: \code{f(T)}, temperature dependence (-)
+\item \code{nout >= 3}: \code{f(I)}, light dependence (-)
+\item \code{nout >= 4}: \code{f(Q)}, nutrient dependence (-)
+\item \code{nout >= 5}: \code{f(Q, P)}, uptake flow reduction (-)
+\item \code{nout >= 6}: \code{f(C)}, effect of chemical stressor (-)
+\item \code{nout >= 7}: \code{dA}, biomass derivative (µg)
+\item \code{nout >= 8}: \code{dQ}, internal phosphorous derivative (mg P/µg fresh wt)
+\item \code{nout >= 9}: \code{dP}, external phosphorous derivative (mg P L-1)
 }
 }
 
@@ -127,8 +138,20 @@ judgement, for calibration purposes. Values can be access from the object, and
 defaults overwritten.
 }
 
+\section{Model history and changes}{
+
+\itemize{
+\item cvasi v1.5.0
+\itemize{
+\item Unused state variable \code{C} and parameter \code{k} removed from documentation
+and code. External concentration \code{C} added to simulation output by means
+of optional output level \code{nout=1}.
+}
+}
+}
+
 \references{
-Weber D, Schaeffer D, Dorgerloh M, Bruns E, Goerlitz G, Hammel K, Preuss TG
+Weber D, Schaefer D, Dorgerloh M, Bruns E, Goerlitz G, Hammel K, Preuss TG
 and Ratte HT, 2012. Combination of a higher-tier flow-through system and
 population modeling to assess the effects of time-variable exposure of
 isoproturon on the green algae Desmodesmus subspictatus and

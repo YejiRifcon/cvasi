@@ -13,7 +13,7 @@
 #' @inheritSection Transferable Biomass transfer
 #'
 #' @references
-#' Weber D, Schaeffer D, Dorgerloh M, Bruns E, Goerlitz G, Hammel K, Preuss TG
+#' Weber D, Schaefer D, Dorgerloh M, Bruns E, Goerlitz G, Hammel K, Preuss TG
 #' and Ratte HT, 2012. Combination of a higher-tier flow-through system and
 #' population modeling to assess the effects of time-variable exposure of
 #' isoproturon on the green algae Desmodesmus subspictatus and
@@ -70,30 +70,40 @@ setClass("AlgaeSimpleScenario", contains = "AlgaeSimple")
 
 #' Algae model with exponential growth and forcings (I, T)
 #'
-#'The model is a mechanistic combined toxicokinetic-toxicodynamic (TK/TD) and
-#'growth model for algae. The model simulates the development of algal biomass
-#'under laboratory and environmental conditions and was developed by
-#'Weber et al. (2012) as cited in EFSA TKTD opinion (2018). The growth of the
-#'algae population is simulated on the basis of growth rates, which are
-#'dependent on environmental conditions (radiation, temperature and phosphorus).
-#'The toxicodynamic sub-model describes the effects of growth-inhibiting
-#'substances through a corresponding reduction in the photosynthesis rate on
-#'the basis of internal concentrations. (the implementation of Weber et al.
-#'(2012) is followed where units differ with EFSA)
+#' The model is a mechanistic combined toxicokinetic-toxicodynamic (TK/TD) and
+#' growth model for algae. The model simulates the development of algal biomass
+#' under laboratory and environmental conditions and was developed by
+#' Weber et al. (2012) as cited in EFSA TKTD opinion (2018). The growth of the
+#' algae population is simulated on the basis of growth rates, which are
+#' dependent on environmental conditions (radiation, temperature, and phosphorus).
+#' The toxicodynamic sub-model describes the effects of growth-inhibiting
+#' substances through a corresponding reduction in the photosynthesis rate on
+#' the basis of internal concentrations.
+#'
+#' Deviating from the equations described by Weber et al., this model implementation
+#' uses a user-defined time-series to represent (environmental) concentrations.
+#' Therefore, state-variable `C` and its differential equation was removed and
+#' model output `C` is identical to the exposure time-series. The implementation
+#' of Weber et al. (2012) was followed where units differ from EFSA (2018).
 #'
 #' @section State variables:
-#' The model has four state variables:
-#' - `A`, Biomass (ug fresh wt/mL, cells/mL *10^4)
-#' - `Q`, Mass of phosphorous internal (mg P/L, or ug P/mL)
-#' - `P`, Mass of phosphorous external (mg P/L, or ug P/mL)
-#' - `C`, external substance concentration (ug/L)
+#' The model has three state variables:
+#' - `A`, Biomass (µg fresh wt/mL, cells/mL *10^4)
+#' - `Q`, Mass of phosphorous internal (mg P/L, or µg P/mL)
+#' - `P`, Mass of phosphorous external (mg P/L, or µg P/mL)
+#'
+#' The original model by Weber et al. contains an additional state variable
+#' `C` which models the external stressor concentration. However, the model
+#' implementation in this packages uses a user-defined time-series to represent
+#' environmental concentrations.
+#' Therefore, state variable `C` and accompanying parameters are not present here.
 #'
 #' @section Model parameters:
 #' - Growth model
 #'   - `mu_max`, Maximum growth rate (d-1)
-#'   - `Q_min`, Minimum intracellular P (ug P/ug fresh wt)
-#'   - `Q_max`, Maximum intracellular P (ug P/ug fresh wt)
-#'   - `v_max`, Maximum P-uptake rate at non-limited growth (ug P/ug fresh wt/d)
+#'   - `Q_min`, Minimum intracellular P (µg P/µg fresh wt)
+#'   - `Q_max`, Maximum intracellular P (µg P/µg fresh wt)
+#'   - `v_max`, Maximum P-uptake rate at non-limited growth (µg P/µg fresh wt/d)
 #'   - `k_s`,   Half-saturation constant for extracellular P (mg P/L)
 #'   - `m_max`, Natural mortality rate (1/d)
 #'   - `I_opt`, Optimum light intensity for growth (uE/m²/s)
@@ -104,20 +114,18 @@ setClass("AlgaeSimpleScenario", contains = "AlgaeSimple")
 #'   - `R_0`, Influx concentration of P (mg P/L)
 #'
 #' - Concentration response (Toxicodynamics)
-#'   - `EC_50`, Effect concentration of 50% inhibition of growth rate (ug/L)
+#'   - `EC_50`, Effect concentration of 50% inhibition of growth rate (µg/L)
 #'   - `b`, slope of concentration effect curve at EC_50 (-)
 #'
-#' - External concentration (Toxicokinetics)
-#'   - `k`, Degradation rate of toxicant in aquatic environments (d-1)
-#'
 #' @section Forcings:
-#' Besides exposure events (C_in), the *Algae* model requires three environmental
-#' properties as time-series input: Irradiance (`I`, uE/m²/s)
-#' and temperature (`T_act`, deg C).
+#' The *Algae* model requires two environmental properties as time-series input:
+#'
+#'  - Irradiance (`I`, uE/m²/s), and
+#'  - Temperature (`T_act`, deg C).
+#'
 #' Forcings time-series are represented by `data.frame` objects
-#' consisting of two columns. The first for time and the second for the
-#' environmental factor in question. The input format for all forcings is a
-#' list of the data frames.
+#' consisting of two columns. The first column for time and the second for the
+#' environmental factor in question. See [scenarios] for more details.
 #'
 #' @section Simulation output:
 #' Simulation results will contain the state variables Biomass (`A`), mass of
@@ -128,16 +136,20 @@ setClass("AlgaeSimpleScenario", contains = "AlgaeSimple")
 #' quantities that are not state variables, for e.g. debugging purposes or to
 #' analyze model behavior. To enable or disable additional outputs, use the
 #' optional argument `nout` of [simulate()]. As an example, set `nout=2` to
-#' enable reporting of model derivatives `dA` and `dQ`. Set `nout=0` to disable
-#' additional outputs (default).
+#' enable reporting of external concentration and model derivative `dA`.
+#' Set `nout=0` to disable additional outputs. The default is `nout=1`.
 #'
 #' The available output levels are as follows:
 #'
-#' - Derivatives
-#'    - `nout >= 1`: `dA`, biomass derivative (µg)
-#'    - `nout >= 2`: `dQ`, internal phosphorous derivative (mg P/ug fresh wt)
-#'    - `nout >= 3`: `dP`, external phosphorous derivative (mg P L-1)
-#'    - `nout >= 4`: `dC`, external concentration derivative (ug L-1)
+#'  - `nout >= 1`: `C`, external concentration (µg/L)
+#'  - `nout >= 2`: `f(T)`, temperature dependence (-)
+#'  - `nout >= 3`: `f(I)`, light dependence (-)
+#'  - `nout >= 4`: `f(Q)`, nutrient dependence (-)
+#'  - `nout >= 5`: `f(Q, P)`, uptake flow reduction (-)
+#'  - `nout >= 6`: `f(C)`, effect of chemical stressor (-)
+#'  - `nout >= 7`: `dA`, biomass derivative (µg)
+#'  - `nout >= 8`: `dQ`, internal phosphorous derivative (mg P/µg fresh wt)
+#'  - `nout >= 9`: `dP`, external phosphorous derivative (mg P L-1)
 #'
 #' @section Solver settings:
 #' The arguments to ODE solver [deSolve::ode()] control how model equations
@@ -161,8 +173,14 @@ setClass("AlgaeSimpleScenario", contains = "AlgaeSimple")
 #' judgement, for calibration purposes. Values can be access from the object, and
 #' defaults overwritten.
 #'
+#' @section Model history and changes:
+#' - cvasi v1.5.0
+#'   - Unused state variable `C` and parameter `k` removed from documentation
+#'     and code. External concentration `C` added to simulation output by means
+#'     of optional output level `nout=1`.
+#'
 #' @references
-#' Weber D, Schaeffer D, Dorgerloh M, Bruns E, Goerlitz G, Hammel K, Preuss TG
+#' Weber D, Schaefer D, Dorgerloh M, Bruns E, Goerlitz G, Hammel K, Preuss TG
 #' and Ratte HT, 2012. Combination of a higher-tier flow-through system and
 #' population modeling to assess the effects of time-variable exposure of
 #' isoproturon on the green algae Desmodesmus subspictatus and
@@ -188,7 +206,7 @@ Algae_Weber <- function() {
   new("AlgaeWeber",
       name = "Algae_Weber",
       param.req = c("mu_max", "m_max", "v_max", "k_s", "Q_min", "Q_max", "R_0", "D",
-                    "T_opt", "T_min", "T_max", "I_opt", "EC_50", "b", "k"
+                    "T_opt", "T_min", "T_max", "I_opt", "EC_50", "b"
       ),
       # default values as defined by Weber et al. (2012)
       param = list(mu_max = 1.7380, m_max = 0.0500, v_max = 0.0520, k_s = 0.0680,
@@ -200,7 +218,7 @@ Algae_Weber <- function() {
       endpoints = c("A", "r"),
       forcings.req=c("T_act", "I"),
       control.req = TRUE,
-      init = c(A = 1, Q = 0.01, P = 0.18, C = 0),
+      init = c(A = 1, Q = 0.01, P = 0.18),
       transfer.interval = -1,
       transfer.biomass = 1,
       transfer.comp.biomass = "A",
@@ -222,26 +240,28 @@ Algae_Weber <- function() {
 #'
 #' @section State variables:
 #' The model has four state variables:
-#' - `A`, Biomass (ug fresh wt/mL, cells/mL *10^4)
-#' - `Q`, Mass of phosphorous internal (ug P/ug fresh wt)
-#' - `P`, Mass of phosphorous external (ug P/L)
-#' - `Dw`, Damage concentration (ug/L)
+#' - `A`, Biomass (µg fresh wt/mL, cells/mL *10^4)
+#' - `Q`, Mass of phosphorous internal (µg P/µg fresh wt)
+#' - `P`, Mass of phosphorous external (µg P/L)
+#' - `Dw`, Damage concentration (µg/L)
 #'
 #' @section Model parameters:
 #' - Growth model
 #'   - `mu_max`, Maximum growth rate (d-1)
-#'   - `Q_min`, Minimum intracellular P (ug P/ug fresh wt)
-#'   - `Q_max`, Maximum intracellular P (ug P/ug fresh wt)
-#'   - `v_max`, Maximum P-uptake rate at non-limited growth (ug P/ug fresh wt/d)
+#'   - `Q_min`, Minimum intracellular P (µg P/µg fresh wt)
+#'   - `Q_max`, Maximum intracellular P (µg P/µg fresh wt)
+#'   - `v_max`, Maximum P-uptake rate at non-limited growth (µg P/µg fresh wt/d)
 #'   - `k_s`,   Half-saturation constant for extracellular P (mg P/L)
 #'   - `m_max`, Natural mortality rate (1/d)
-#'   - `I_opt`, Optimum light intensity for growth (uE/m²/s)
+#'   - `I_opt`, Optimum light intensity for growth (µE/m²/s)
 #'   - `T_opt`, Optimum temperature for growth (°C)
 #'   - `T_max`, Maximum temperature for growth (°C)
 #'   - `T_min`, Minimum temperature for growth (°C)
+#'   - `D`, Dilution rate (1/d)
+#'   - `R_0`, Influx concentration of P (mg P/L)
 #'
 #' - Concentration response (Toxicodynamics)
-#'   - `EC_50`, Effect concentration of 50% inhibition of growth rate (ug L-1)
+#'   - `EC_50`, Effect concentration of 50% inhibition of growth rate (µg L-1)
 #'   - `b`, slope of concentration effect curve at EC_50 (-)
 #'   - `dose_resp`, shape of the dose response curve (0 = logit, 1 = probit)
 #'
@@ -270,11 +290,17 @@ Algae_Weber <- function() {
 #' additional outputs (default).
 #'
 #' The available output levels are as follows:
-#' - Derivatives
-#'    - `nout >= 1`: `dA`, biomass derivative (µg)
-#'    - `nout >= 2`: `dQ`, internal phosphorous derivative (mg P/ug fresh wt)
-#'    - `nout >= 3`: `dP`, external phosphorous derivative (mg P L-1)
-#'    - `nout >= 4`: `dDw`, damage concentration derivative (ug L-1)
+#'
+#'  - `nout >= 1`: `C`, external concentration (µg/L)
+#'  - `nout >= 2`: `f(T)`, temperature dependence (-)
+#'  - `nout >= 3`: `f(I)`, light dependence (-)
+#'  - `nout >= 4`: `f(Q)`, nutrient dependence (-)
+#'  - `nout >= 5`: `f(Q, P)`, uptake flow reduction (-)
+#'  - `nout >= 6`: `f(C)`, effect of chemical stressor (-)
+#'  - `nout >= 7`: `dA`, biomass derivative (µg)
+#'  - `nout >= 8`: `dQ`, internal phosphorous derivative (mg P/µg fresh wt)
+#'  - `nout >= 9`: `dP`, external phosphorous derivative (mg P L-1)
+#'  - `nout >= 10`: `dDw`, damage concentration derivative (µg L-1)
 #'
 #' @section Solver settings:
 #' The arguments to ODE solver [deSolve::ode()] control how model equations
@@ -293,8 +319,17 @@ Algae_Weber <- function() {
 #' - `hmax = 0.1`<br>
 #'    Maximum step length in time suitable for most simulations.
 #'
+#' @section Model history and changes:
+#' - cvasi v1.5.0
+#'   - Support for simulating flow-through conditions by introducing new parameters
+#'     `D` and `R_0` and adapting the ODEs according to the [Algae_Weber] model.
+#'   - ODE of external phosphorous concentration `P` corrected, which contained
+#'     an erroneous growth term before.
+#'   - Response functions added to optional simulation outputs, order of output
+#'     levels modified.
+#'
 #' @references
-#' Weber D, Schaeffer D, Dorgerloh M, Bruns E, Goerlitz G, Hammel K, Preuss TG
+#' Weber D, Schaefer D, Dorgerloh M, Bruns E, Goerlitz G, Hammel K, Preuss TG
 #' and Ratte HT, 2012. Combination of a higher-tier flow-through system and
 #' population modeling to assess the effects of time-variable exposure of
 #' isoproturon on the green algae Desmodesmus subspictatus and
@@ -309,12 +344,12 @@ Algae_Weber <- function() {
 Algae_TKTD <- function() {
   new("AlgaeTKTD",
       name = "Algae_TKTD",
-      param.req = c("mu_max", "m_max", "v_max", "k_s", "Q_min", "Q_max", "T_opt",
-                    "T_min", "T_max", "I_opt", "EC_50", "b", "kD", "dose_resp"),
+      param.req = c("mu_max", "m_max", "v_max", "k_s", "Q_min", "Q_max", "R_0",
+                    "D", "T_opt", "T_min", "T_max", "I_opt", "EC_50", "b", "kD",
+                    "dose_resp"),
       # default values as defined by Weber et al. (2012)
-      param = list(mu_max = 1.7380, m_max = 0.0500, v_max = 0.0520,
-                   k_s = 0.0680,
-                   Q_min = 0.0011, Q_max = 0.0144,
+      param = list(mu_max = 1.7380, m_max = 0.0500, v_max = 0.0520, k_s = 0.0680,
+                   Q_min = 0.0011, Q_max = 0.0144, R_0 = 0.36, D = 0.5,
                    T_opt = 27, T_min = 0, T_max = 35, I_opt = 120,
                    dose_resp = 0
       ),
@@ -345,7 +380,7 @@ Algae_TKTD <- function() {
 #'
 #' @section State variables:
 #' The model has two state variables:
-#' - `A`, Biomass (ug fresh wt/mL, cells/mL *10^4)
+#' - `A`, Biomass (µg fresh wt/mL, cells/mL *10^4)
 #' - `Dw`, scaled internal damage, only takes effect if parameter `scaled = 1`
 #'
 #' @section Model parameters:
@@ -353,7 +388,7 @@ Algae_TKTD <- function() {
 #'   - `mu_max`, Maximum growth rate (d-1)
 #'
 #' - Concentration response (Toxicodynamics)
-#'   - `EC_50`, Effect concentration of 50% inhibition of growth rate (ug L-1)
+#'   - `EC_50`, Effect concentration of 50% inhibition of growth rate (µg L-1)
 #'   - `b`, slope of concentration effect curve at EC_50 (-)
 #'   - `dose_response`, shape of the dose response curve (0 = logit, 1 = probit)
 #'
@@ -387,10 +422,10 @@ Algae_TKTD <- function() {
 #' (`f_growth`). Set `nout=0` to disable additional outputs (default).
 #'
 #' The available output levels are as follows:
-#' - `nout >= 1`: `Cw` external concentration (ug L-1)
+#' - `nout >= 1`: `Cw` external concentration (µg L-1)
 #' - `nout >= 2`: `f_growth` growth scaling factor (-)
 #' - `nout >= 3`: `dA`, biomass derivative (µg)
-#' - `nout >= 4`: `dDw`, damage concentration derivative (ug L-1)
+#' - `nout >= 4`: `dDw`, damage concentration derivative (µg L-1)
 #'
 #' @section Solver settings:
 #' The arguments to ODE solver [deSolve::ode()] control how model equations
@@ -410,7 +445,7 @@ Algae_TKTD <- function() {
 #'    Maximum step length in time suitable for most simulations.
 #'
 #' @references
-#' Weber D, Schaeffer D, Dorgerloh M, Bruns E, Goerlitz G, Hammel K, Preuss TG
+#' Weber D, Schaefer D, Dorgerloh M, Bruns E, Goerlitz G, Hammel K, Preuss TG
 #' and Ratte HT, 2012. Combination of a higher-tier flow-through system and
 #' population modeling to assess the effects of time-variable exposure of
 #' isoproturon on the green algae Desmodesmus subspictatus and
@@ -452,7 +487,7 @@ Algae_Simple <- function() {
 # @param hmax numeric, maximum step length in time, see [deSolve::ode()]
 # @param ... additional arguments passed to [deSolve::ode()]
 #' @importFrom deSolve ode
-solver_algae_weber <- function(scenario, method = "lsoda", hmax = 0.1, ...) {
+solver_algae_weber <- function(scenario, method = "lsoda", hmax = 0.1, nout = 1, ...) {
   params <- scenario@param
   if(is.list(params))
     params <- unlist(params)
@@ -476,13 +511,13 @@ solver_algae_weber <- function(scenario, method = "lsoda", hmax = 0.1, ...) {
   )
 
   # set names of additional output variables
-  outnames <- c("dA", "dQ", "dP", "dC")
+  outnames <- c("C", "f_T", "f_I", "f_Q", "f_QP", "f_C", "dA", "dQ", "dP")
 
   # run solver
   ode(y = scenario@init, times=scenario@times, initfunc = "algae_init",
         func = "algae_func", initforc = "algae_forc", parms = params,
-        forcings = forcings,
-        dllname = "cvasi", method = method, hmax = hmax, outnames = outnames, ...)
+        forcings = forcings, dllname = "cvasi", method = method, hmax = hmax,
+        outnames = outnames, nout = nout, ...)
 }
 
 #' @include solver.R
@@ -497,20 +532,21 @@ setMethod("solver", "AlgaeWeber", solver_algae_weber)
 #' @importFrom deSolve ode
 solver_algae_tktd <- function(scenario, method = "lsoda", hmax = 0.1, ...) {
   # keep for backwards compatibility, older version used wrong list in constructor
-  param.req = c("mu_max", "m_max", "v_max", "k_s", "Q_min", "Q_max", "T_opt",
-                 "T_min", "T_max", "I_opt", "EC_50", "b", "kD", "dose_resp" )
+  param_order = c("mu_max", "m_max", "v_max", "k_s", "Q_min", "Q_max", "T_opt",
+                    "T_min", "T_max", "I_opt", "EC_50", "b", "kD", "dose_resp",
+                    "D", "R_0")
 
   params <- scenario@param
   if(is.list(params))
     params <- unlist(params)
 
   # check for missing parameters
-  params.missing <- setdiff(param.req, names(params))
+  params.missing <- setdiff(param_order, names(params))
   if(length(params.missing) > 0)
     stop(paste("parameter missing:", paste(params.missing, collapse=", ")))
 
   # reorder parameters for deSolve
-  params <- params[param.req]
+  params <- params[param_order]
   # check if any parameter has no value
   if(any(is.na(params) | is.nan(params)))
     stop(paste("parameter value missing:", paste(names(params)[which(is.na(params) | is.nan(params))], collapse=", ")))
@@ -523,11 +559,11 @@ solver_algae_tktd <- function(scenario, method = "lsoda", hmax = 0.1, ...) {
   )
 
   # set names of additional output variables
-  outnames <- c("dA", "dQ", "dP", "dDw")
+  outnames <- c("C", "f_T", "f_I", "f_Q", "f_QP", "f_C", "dA", "dQ", "dP", "dDw")
 
   # run solver
-  ode(y = scenario@init, times=scenario@times, initfunc = "algae_TKTD_init",
-        func = "algae_TKTD_func", initforc = "algae_TKTD_forc",
+  ode(y = scenario@init, times=scenario@times, initfunc = "algae_tktd_init",
+        func = "algae_tktd_func", initforc = "algae_tktd_forc",
         parms = params, forcings = forcings,
         dllname = "cvasi", method = method, hmax = hmax, outnames = outnames, ...)
 }

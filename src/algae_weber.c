@@ -15,7 +15,7 @@
 /**
  * Allocate memory for global parameter array
  */
-static double parms[15] = {0};
+static double parms[14] = {0};
 /**
  * Allocate memory for forcing function data
  *
@@ -29,13 +29,11 @@ static double forc[3] = {0};
 #define A y[0]
 #define Q y[1]
 #define P y[2]
-#define C y[3]
 
 // Derivative aliases
 #define dA ydot[0]
 #define dQ ydot[1]
 #define dP ydot[2]
-#define dC ydot[3]
 
 // Parameter aliases
 // Growth model parameters
@@ -54,12 +52,8 @@ static double forc[3] = {0};
 // Toxicodynamic parameters
 #define EC_50 parms[12]
 #define b parms[13]
-// Toxicokinetic parameters
-#define k parms[14]
-//#define I parms[15]
-//#define T_act parms[16]
 // Forcings by environmental variables
-#define C_in  forc[0]
+#define C     forc[0]
 #define I     forc[1]
 #define T_act forc[2]
 
@@ -68,7 +62,7 @@ static double forc[3] = {0};
  */
 void algae_init(void (*odeparms)(int *, double *))
 {
-  int N = 15;
+  int N = 14;
   odeparms(&N, parms);
 }
 
@@ -122,8 +116,7 @@ void algae_func(int *neq, double *t, double *y, double *ydot, double *yout, int 
 {
 
   // Biomass
-  dA = (mu_max * f_temp(T_act) * f_I(I) * f_Q(Q, A) * f_C(C_in) - m_max - D) * A;
-  //printf("f_Q: %f, A: %f\n", f_Q(A, Q), A);
+  dA = (mu_max * f_temp(T_act) * f_I(I) * f_Q(Q, A) * f_C(C) - m_max - D) * A;
 
   // Internal concentration of P
   dQ = v_max * f_Q_P(A, Q, P) * A - (m_max + D) * Q;
@@ -131,15 +124,20 @@ void algae_func(int *neq, double *t, double *y, double *ydot, double *yout, int 
   // External concentration of P
   dP = D * R_0 - D * P + Q * m_max - (v_max * f_Q_P(A, Q, P) * A);
 
-  // Actual concentration
-  dC = C_in * D - k * C - D * C;
-
   // Additional output
   if(*ip > 0)
   {
-    if(*ip >= 0) yout[0] = dA;
-    if(*ip >= 1) yout[1] = dQ;
-    if(*ip >= 2) yout[2] = dP;
-    if(*ip >= 3) yout[3] = C;
+    // external concentration
+    yout[0] = C;
+    /// response functions
+    if(*ip > 1) yout[1] = f_temp(T_act);
+    if(*ip > 2) yout[2] = f_I(I);
+    if(*ip > 3) yout[3] = f_Q(Q, A);
+    if(*ip > 4) yout[4] = f_Q_P(A, Q, P);
+    if(*ip > 5) yout[5] = f_C(C);
+    // derivatives
+    if(*ip > 6) yout[6] = dA;
+    if(*ip > 7) yout[7] = dQ;
+    if(*ip > 8) yout[8] = dP;
   }
 }

@@ -12,13 +12,29 @@
       from formerly `0.025` to now `0.25`. This reflects changes to the
       SETAC working group's report in version 1.2. The old value originated from
       typos in former report versions.
+   * `Algae_Weber` model:
+        * Unused state variable `C` and parameter `k` removed. External
+          concentrations are solely defined by the scenario's exposure time-series.
+        * Additional output levels available. Ordering of output levels harmonized
+          with other models.
+   * `Algae_TKTD` model:
+        * New parameters `D` and `R_0` added to enable simulation of flow-through
+          conditions, analogous to the `Algae_Weber` model.
+        * Erroneous growth term in external phosphorous differential equation was
+          removed.
+        * Additional output levels available. Ordering of output levels harmonized
+          with other models.
+   * Example scenario `Rsubcapitata`:
+        * Renamed to all lower-case name `rsubcapitata`.
+        * Scenario settings modified to correctly reflect conditions of *R. subcapitata*
+          exposed to *isoproturon* in reactor A of Weber et al. (2012).
+   * *Algae* models now check if all required parameters are present before
+     starting a simulation.
    * The effects calculated by `effect()` are no longer limited to a maximum
      value of `1.0`. Instead, effects are calculated similarly to *relative errors*,
      quantifying the relative difference of endpoints in control and treatment
      scenarios. Values greater than one as well as less than zero can occur.
    * Unused parameter `const_growth` removed from `Algae_Simple()` constructor.
-   * *Algae* models now check if all required parameters are present before
-     starting a simulation.
    * `simulate_batch()` now accepts additional parameters `...` which are passed
      through to `simulate()`.
    * Scenario information on the console provided by `show()` now includes
@@ -27,8 +43,10 @@
 
 * DEPRECATED
 
-  * Caching of results of control scenarios is fully handled by the package.
+  * Caching of results of control scenarios is now fully handled by the package.
     Calls to `cache_controls()` will raise an error.
+  * `simulate_batch()` was superseded by `batch()`; the function will raise
+     deprecation warning when called by users.
 
 # cvasi 1.4.0
 

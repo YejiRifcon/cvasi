@@ -26,10 +26,10 @@ considers a scaled internal damage instead of the external concentration.
 
 The model has four state variables:
 \itemize{
-\item \code{A}, Biomass (ug fresh wt/mL, cells/mL *10^4)
-\item \code{Q}, Mass of phosphorous internal (ug P/ug fresh wt)
-\item \code{P}, Mass of phosphorous external (ug P/L)
-\item \code{Dw}, Damage concentration (ug/L)
+\item \code{A}, Biomass (µg fresh wt/mL, cells/mL *10^4)
+\item \code{Q}, Mass of phosphorous internal (µg P/µg fresh wt)
+\item \code{P}, Mass of phosphorous external (µg P/L)
+\item \code{Dw}, Damage concentration (µg/L)
 }
 }
 
@@ -39,19 +39,21 @@ The model has four state variables:
 \item Growth model
 \itemize{
 \item \code{mu_max}, Maximum growth rate (d-1)
-\item \code{Q_min}, Minimum intracellular P (ug P/ug fresh wt)
-\item \code{Q_max}, Maximum intracellular P (ug P/ug fresh wt)
-\item \code{v_max}, Maximum P-uptake rate at non-limited growth (ug P/ug fresh wt/d)
+\item \code{Q_min}, Minimum intracellular P (µg P/µg fresh wt)
+\item \code{Q_max}, Maximum intracellular P (µg P/µg fresh wt)
+\item \code{v_max}, Maximum P-uptake rate at non-limited growth (µg P/µg fresh wt/d)
 \item \code{k_s},   Half-saturation constant for extracellular P (mg P/L)
 \item \code{m_max}, Natural mortality rate (1/d)
-\item \code{I_opt}, Optimum light intensity for growth (uE/m²/s)
+\item \code{I_opt}, Optimum light intensity for growth (µE/m²/s)
 \item \code{T_opt}, Optimum temperature for growth (°C)
 \item \code{T_max}, Maximum temperature for growth (°C)
 \item \code{T_min}, Minimum temperature for growth (°C)
+\item \code{D}, Dilution rate (1/d)
+\item \code{R_0}, Influx concentration of P (mg P/L)
 }
 \item Concentration response (Toxicodynamics)
 \itemize{
-\item \code{EC_50}, Effect concentration of 50\% inhibition of growth rate (ug L-1)
+\item \code{EC_50}, Effect concentration of 50\% inhibition of growth rate (µg L-1)
 \item \code{b}, slope of concentration effect curve at EC_50 (-)
 \item \code{dose_resp}, shape of the dose response curve (0 = logit, 1 = probit)
 }
@@ -88,13 +90,16 @@ additional outputs (default).
 
 The available output levels are as follows:
 \itemize{
-\item Derivatives
-\itemize{
-\item \code{nout >= 1}: \code{dA}, biomass derivative (µg)
-\item \code{nout >= 2}: \code{dQ}, internal phosphorous derivative (mg P/ug fresh wt)
-\item \code{nout >= 3}: \code{dP}, external phosphorous derivative (mg P L-1)
-\item \code{nout >= 4}: \code{dDw}, damage concentration derivative (ug L-1)
-}
+\item \code{nout >= 1}: \code{C}, external concentration (µg/L)
+\item \code{nout >= 2}: \code{f(T)}, temperature dependence (-)
+\item \code{nout >= 3}: \code{f(I)}, light dependence (-)
+\item \code{nout >= 4}: \code{f(Q)}, nutrient dependence (-)
+\item \code{nout >= 5}: \code{f(Q, P)}, uptake flow reduction (-)
+\item \code{nout >= 6}: \code{f(C)}, effect of chemical stressor (-)
+\item \code{nout >= 7}: \code{dA}, biomass derivative (µg)
+\item \code{nout >= 8}: \code{dQ}, internal phosphorous derivative (mg P/µg fresh wt)
+\item \code{nout >= 9}: \code{dP}, external phosphorous derivative (mg P L-1)
+\item \code{nout >= 10}: \code{dDw}, damage concentration derivative (µg L-1)
 }
 }
 
@@ -118,8 +123,23 @@ Maximum step length in time suitable for most simulations.
 }
 }
 
+\section{Model history and changes}{
+
+\itemize{
+\item cvasi v1.5.0
+\itemize{
+\item Support for simulating flow-through conditions by introducing new parameters
+\code{D} and \code{R_0} and adapting the ODEs according to the \link{Algae_Weber} model.
+\item ODE of external phosphorous concentration \code{P} corrected, which contained
+an erroneous growth term before.
+\item Response functions added to optional simulation outputs, order of output
+levels modified.
+}
+}
+}
+
 \references{
-Weber D, Schaeffer D, Dorgerloh M, Bruns E, Goerlitz G, Hammel K, Preuss TG
+Weber D, Schaefer D, Dorgerloh M, Bruns E, Goerlitz G, Hammel K, Preuss TG
 and Ratte HT, 2012. Combination of a higher-tier flow-through system and
 population modeling to assess the effects of time-variable exposure of
 isoproturon on the green algae Desmodesmus subspictatus and

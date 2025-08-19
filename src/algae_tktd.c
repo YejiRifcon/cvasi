@@ -16,7 +16,7 @@
 /**
  * Allocate memory for global parameter array
  */
-static double parms[14] = {0};
+static double parms[16] = {0};
 /**
  * Allocate memory for forcing function data
  *
@@ -54,6 +54,8 @@ static double log_EC50 = 0;
 #define T_min parms[7]
 #define T_max parms[8]
 #define I_opt parms[9]
+#define R_0 parms[14]
+#define D parms[15]
 // Toxicodynamic parameters
 #define EC_50 parms[10]
 #define b parms[11]
@@ -68,9 +70,9 @@ static double log_EC50 = 0;
 /**
  * Parameter initializer
  */
-void algae_TKTD_init(void (*odeparms)(int *, double *))
+void algae_tktd_init(void (*odeparms)(int *, double *))
 {
-  int N = 14;
+  int N = 16;
   odeparms(&N, parms);
 
   log_EC50 = log(EC_50);
@@ -79,7 +81,7 @@ void algae_TKTD_init(void (*odeparms)(int *, double *))
 /**
  * Forcings initializer
  */
-void algae_TKTD_forc(void (*odeforcs)(int *, double *))
+void algae_tktd_forc(void (*odeforcs)(int *, double *))
 {
   int N = 3;
   odeforcs(&N, forc);
@@ -89,26 +91,26 @@ void algae_TKTD_forc(void (*odeforcs)(int *, double *))
  * Functions for calculating reduction factors for growth rate
  */
 // Temperature effect on mu_max
-double f_temp_TKTD(double temp)
+double f_temp_tktd(double temp)
 {
   double f = (temp < T_opt) ? (temp - T_opt) / (T_min - T_opt) : (temp - T_opt) / (T_max - T_opt);
   return exp(-2.3 * pow(f, 2));
 }
 
 // Irradiance effect on mu_max
-double f_I_TKTD(double I_param)
+double f_I_tktd(double I_param)
 {
   return I_param / I_opt * exp(1 - (I_param / I_opt));
 }
 
 // Phosphorus effect on mu_max
-double f_Q_TKTD(double Q_param, double A_param)
+double f_Q_tktd(double Q_param, double A_param)
 {
   return (1 - exp(-log(2)*((Q_param / (Q_min * A_param)) - 1)));
 }
 
 // Effect on internal phosphorus
-double f_Q_P_TKTD(double A_param, double Q_param, double P_param)
+double f_Q_P_tktd(double A_param, double Q_param, double P_param)
 {
   return (((Q_max * A_param - Q_param) / ((Q_max - Q_min) * A_param)) * (P_param / (k_s + P_param)));
 }
@@ -130,24 +132,21 @@ double f_Dw_logit(double Dw_param)
 /**
  * Derivatives
  */
-void algae_TKTD_func(int *neq, double *t, double *y, double *ydot, double *yout, int *ip)
+void algae_tktd_func(int *neq, double *t, double *y, double *ydot, double *yout, int *ip)
 {
 
   // Biomass
   if(dose_resp == 0) {
-    dA = (mu_max * f_temp_TKTD(T_act) * f_I_TKTD(I) * f_Q_TKTD(Q, A) * f_Dw_logit(Dw) - m_max) * A;
+    dA = (mu_max * f_temp_tktd(T_act) * f_I_tktd(I) * f_Q_tktd(Q, A) * f_Dw_logit(Dw) - m_max - D) * A;
   } else {
-    dA = (mu_max * f_temp_TKTD(T_act) * f_I_TKTD(I) * f_Q_TKTD(Q, A) * f_Dw_probit(Dw) - m_max) * A;
+    dA = (mu_max * f_temp_tktd(T_act) * f_I_tktd(I) * f_Q_tktd(Q, A) * f_Dw_probit(Dw) - m_max - D) * A;
   }
 
   // Internal concentration of P
-  dQ = v_max * f_Q_P_TKTD(A, Q, P) * A - (m_max) * Q;
+  dQ = v_max * f_Q_P_tktd(A, Q, P) * A - (m_max + D) * Q;
 
   // External concentration of P
-  dP = P + Q * m_max - (v_max * f_Q_P_TKTD(A, Q, P) * A);
-
-  // Actual concentration
-  //dC = C_in * D - k * C - D * C;
+  dP = D * (R_0 - P) + Q * m_max - (v_max * f_Q_P_tktd(A, Q, P) * A);
 
   // TKTD damage concentration
   dDw = kD * (Cw - Dw);
@@ -155,9 +154,18 @@ void algae_TKTD_func(int *neq, double *t, double *y, double *ydot, double *yout,
   // Additional outputs
   if(*ip > 0)
   {
-    if(*ip > 0) yout[0] = dA;
-    if(*ip > 1) yout[1] = dQ;
-    if(*ip > 2) yout[2] = dP;
-    if(*ip > 3) yout[3] = dDw;
+    // external concentration
+    yout[0] = Cw;
+    // response functions
+    if(*ip > 1) yout[1] = f_temp_tktd(T_act);
+    if(*ip > 2) yout[2] = f_I_tktd(I);
+    if(*ip > 3) yout[3] = f_Q_tktd(Q, A);
+    if(*ip > 4) yout[4] = f_Q_P_tktd(A, Q, P);
+    if(*ip > 5) yout[5] = dose_resp == 0 ? f_Dw_logit(Dw) : f_Dw_probit(Dw);
+    // derivatives
+    if(*ip > 6) yout[6] = dA;
+    if(*ip > 7) yout[7] = dQ;
+    if(*ip > 8) yout[8] = dP;
+    if(*ip > 9) yout[9] = dDw;
   }
 }
