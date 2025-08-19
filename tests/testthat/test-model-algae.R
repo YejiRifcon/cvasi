@@ -302,7 +302,7 @@ test_that("output variables", {
   rs2 <- sc %>% simulate(nout=9)
 
   expect_equal(length(rs2), length(rs) + 9)
-  expect_equal(tail(names(rs2), n=4), c("dA", "dQ", "dP"))
+  expect_equal(tail(names(rs2), n=3), c("dA", "dQ", "dP"))
   expect_true(any(rs2[, "dA"] != 0))
   expect_true(any(rs2[, "dQ"] != 0))
   expect_true(any(rs2[, "dP"] != 0))
