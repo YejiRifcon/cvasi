@@ -15,6 +15,7 @@ knitr::opts_chunk$set(
 )
 
 library(cvasi)
+library(purrr)
 ```
 
 # cvasi: Calibration, Validation, and Simulation of TKTD models in R
@@ -33,12 +34,13 @@ requested.
 
 The package provides facilities to
 
-* simulate effect models such as *GUTS-RED*, *DEB*, *Lemna*, *Myriophyllum*, and *Algae*
-* calculate effect endpoints
-* derive effect profiles (*EPx* values)
-* import exposure time-series from *FOCUS TOXSWA*
-* import fitted parameters from *morse*
-* and more
+* Simulate effect models such as *GUTS*, *GUTS-RED*, *DEB*, *Lemna* based on
+  Schmitt et al. (2013), and algae models based on Weber et al. (2012),
+* Calculate effect endpoints,
+* Derive effect profiles (*EPx* values),
+* Import exposure time-series from *FOCUS TOXSWA*,
+* Import fitted parameters from *morse*,
+* And much more.
 
 A graphical user interface implemented in [Shiny](https://posit.co/products/open-source/rstudio/)
 is also available, see the *[cvasi.ui](https://github.com/cvasi-tktd/cvasi.ui/)*
@@ -86,11 +88,11 @@ Basic usage:
 library(cvasi)
 
 # create and parameterize a GUTS-RED-IT scenario
-GUTS_RED_IT() %>%
+scenario <- GUTS_RED_IT() %>%
   set_param(c(kd=0.0005, hb=0, alpha=0.4, beta=1.5)) %>%
   set_exposure(data.frame(time=c(0, 100, 101, 200, 201, 400),
                           conc=c(0, 0, 0.1, 0.1, 0, 0))) %>%
-  set_times(1:400) -> scenario
+  set_times(1:400)
 
 # simulate scenario
 results <- scenario %>% simulate()
@@ -106,7 +108,7 @@ Calculation of effects:
 scenario %>% effect()
 
 # create a dose-response curve
-scenario %>% dose_response() -> drc
+drc <- scenario %>% dose_response()
 head(drc)
 
 # plot the dose-response curve

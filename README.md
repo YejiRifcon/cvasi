@@ -19,13 +19,14 @@ time-consuming processes can be run in parallel if requested.
 
 The package provides facilities to
 
-- simulate effect models such as *GUTS-RED*, *DEB*, *Lemna*,
-  *Myriophyllum*, and *Algae*
-- calculate effect endpoints
-- derive effect profiles (*EPx* values)
-- import exposure time-series from *FOCUS TOXSWA*
-- import fitted parameters from *morse*
-- and more
+- Simulate effect models such as *GUTS*, *GUTS-RED*, *DEB*, *Lemna*
+  based on Schmitt et al. (2013), and algae models based on Weber et
+  al. (2012),
+- Calculate effect endpoints,
+- Derive effect profiles (*EPx* values),
+- Import exposure time-series from *FOCUS TOXSWA*,
+- Import fitted parameters from *morse*,
+- And much more.
 
 A graphical user interface implemented in
 [Shiny](https://posit.co/products/open-source/rstudio/) is also
@@ -76,22 +77,22 @@ Basic usage:
 library(cvasi)
 
 # create and parameterize a GUTS-RED-IT scenario
-GUTS_RED_IT() %>%
+scenario <- GUTS_RED_IT() %>%
   set_param(c(kd=0.0005, hb=0, alpha=0.4, beta=1.5)) %>%
   set_exposure(data.frame(time=c(0, 100, 101, 200, 201, 400),
                           conc=c(0, 0, 0.1, 0.1, 0, 0))) %>%
-  set_times(1:400) -> scenario
+  set_times(1:400)
 
 # simulate scenario
 results <- scenario %>% simulate()
 tail(results)
 #>     time           D H        S
-#> 395  395 0.004429420 0 0.998655
-#> 396  396 0.004427206 0 0.998655
-#> 397  397 0.004424993 0 0.998655
-#> 398  398 0.004422781 0 0.998655
-#> 399  399 0.004420570 0 0.998655
-#> 400  400 0.004418360 0 0.998655
+#> 395  395 0.004429420 0 0.998654
+#> 396  396 0.004427206 0 0.998654
+#> 397  397 0.004424993 0 0.998654
+#> 398  398 0.004422781 0 0.998654
+#> 399  399 0.004420570 0 0.998654
+#> 400  400 0.004418360 0 0.998654
 
 # ... and plot simulation results
 plot(results)
@@ -110,20 +111,15 @@ scenario %>% effect()
 #> 1 <GutsRdIt> 0.00135           1       400
 
 # create a dose-response curve
-scenario %>% dose_response() -> drc
-#> 
-#> Attaching package: 'purrr'
-#> The following object is masked from 'package:testthat':
-#> 
-#>     is_null
+drc <- scenario %>% dose_response()
 head(drc)
 #>   endpoint        mf      effect
-#> 1        L  3.812500 0.009915394
-#> 2        L  4.799653 0.013954569
-#> 3        L  6.042405 0.019597765
-#> 4        L  7.606938 0.027459877
-#> 5        L  9.576567 0.038357524
-#> 6        L 12.056184 0.053336214
+#> 1        L  3.812500 0.009914431
+#> 2        L  4.799653 0.013956165
+#> 3        L  6.042405 0.019598667
+#> 4        L  7.606938 0.027460989
+#> 5        L  9.576567 0.038353465
+#> 6        L 12.056184 0.053333780
 
 # plot the dose-response curve
 plot(drc)
