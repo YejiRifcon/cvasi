@@ -283,7 +283,7 @@ solver_lemna_setac <- function(scenario, nout=2, method="lsoda", hmax=0.1, ...) 
         forcings=forcings, nout=nout, outnames=outnames, method=method, hmax=hmax, ...)
 }
 #' @include solver.R
-#' @describeIn solver Numerically integrates Lemna_SETAC models
+#' @describeIn solver Numerically integrates Lemna_SETAC scenarios
 setMethod("solver", "LemnaSetac", function(scenario, ...) solver_lemna_setac(scenario, ...) )
 
 

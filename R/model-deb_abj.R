@@ -169,7 +169,7 @@ solver_deb_abj <- function(scenario, method="lsoda", ...) {
         initforc="deb_abj_forc", forcings=forcings, outnames=outnames, ...)
 }
 #' @include solver.R
-#' @describeIn solver Numerically integrates DEB_abj models
+#' @describeIn solver Numerically integrates DEB_abj scenarios
 setMethod("solver", "DebAbj", function(scenario, ...) solver_deb_abj(scenario, ...))
 
 

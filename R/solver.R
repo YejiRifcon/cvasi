@@ -9,8 +9,12 @@
 #'
 #' @param scenario [scenario] object
 #' @param ... additional parameters passed on to [deSolve::ode()]
-#' @param method string, numerical solver used by [deSolve::ode()]
-#' @param hmax numeric, maximum step length in time, see [deSolve::ode()]
+#' @param method string, selects the numerical solver used by [deSolve::ode()]
+#' @param hmax numeric, sets the maximum step length in time, see [deSolve::ode()]
+#' @param nout numeric, the  number of additional output variables returned by
+#'          the model, see `vignette("compiledCode", "deSolve")` for details.
+#'          If and which output variables are available depends on the scenario
+#'          type, please refer to the documentation of the model in question.
 #' @return `data.frame` with simulation results
 #' @export
 setGeneric("solver",

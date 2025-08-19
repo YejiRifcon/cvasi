@@ -214,7 +214,7 @@ solver_gutsredsd <- function(scenario, method="lsoda", hmax=1, ...) {
   df
 }
 #' @include solver.R
-#' @describeIn solver Numerically integrates GUTS-RED-SD models
+#' @describeIn solver Numerically integrates GUTS-RED-SD scenarios
 setMethod("solver", "GutsRedSd", function(scenario, ...) solver_gutsredsd(scenario, ...))
 
 # @param scenario Scenario object
@@ -254,7 +254,7 @@ solver_gutsredit <- function(scenario, method="lsoda", hmax=1, ...) {
   df$CMax <- NULL
   df
 }
-#' @describeIn solver Numerically integrates GUTS-RED-IT models
+#' @describeIn solver Numerically integrates GUTS-RED-IT scenarios
 setMethod("solver", "GutsRedIt", function(scenario, ...) solver_gutsredit(scenario, ...) )
 
 

@@ -288,7 +288,7 @@ solver_lemna_schmitt <- function(scenario, nout=2, method="lsoda", hmax=0.1, ...
         hmax=hmax, ...)
 }
 #' @include solver.R
-#' @describeIn solver Numerically integrates Lemna_Schmitt models
+#' @describeIn solver Numerically integrates Lemna_Schmitt scenarios
 setMethod("solver", "LemnaSchmitt", function(scenario, ...) solver_lemna_schmitt(scenario, ...) )
 
 

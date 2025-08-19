@@ -368,11 +368,11 @@ solver_gutsit <- function(scenario, method="ode45", hmax=0.1, nout=0, ...) {
 }
 
 #' @include solver.R
-#' @describeIn solver Numerically integrates GUTS-SD models
+#' @describeIn solver Numerically integrates GUTS-SD scenarios
 setMethod("solver", "GutsSd", function(scenario, ...) solver_gutssd(scenario, ...))
 
 #' @include solver.R
-#' @describeIn solver Numerically integrates GUTS-IT models
+#' @describeIn solver Numerically integrates GUTS-IT scenarios
 setMethod("solver", "GutsIt", function(scenario, ...) solver_gutsit(scenario, ...))
 
 #' @include fx.R

@@ -58,9 +58,14 @@ solver(scenario, ...)
 
 \item{...}{additional parameters passed on to \code{\link[deSolve:ode]{deSolve::ode()}}}
 
-\item{method}{string, numerical solver used by \code{\link[deSolve:ode]{deSolve::ode()}}}
+\item{method}{string, selects the numerical solver used by \code{\link[deSolve:ode]{deSolve::ode()}}}
 
-\item{hmax}{numeric, maximum step length in time, see \code{\link[deSolve:ode]{deSolve::ode()}}}
+\item{hmax}{numeric, sets the maximum step length in time, see \code{\link[deSolve:ode]{deSolve::ode()}}}
+
+\item{nout}{numeric, the  number of additional output variables returned by
+the model, see \code{vignette("compiledCode", "deSolve")} for details.
+If and which output variables are available depends on the scenario
+type, please refer to the documentation of the model in question.}
 }
 \value{
 \code{data.frame} with simulation results
@@ -78,32 +83,32 @@ details.
 \itemize{
 \item \code{solver(ANY)}: Default solver, raises an error
 
-\item \code{solver(AlgaeWeber)}: numerically integrates Algae_Weber models
+\item \code{solver(AlgaeWeber)}: numerically integrates Algae_Weber scenarios
 
-\item \code{solver(AlgaeTKTD)}: numerically integrates Algae_TKTD models
+\item \code{solver(AlgaeTKTD)}: numerically integrates Algae_TKTD scenarios
 
-\item \code{solver(AlgaeSimple)}: numerically integrates Algae_Simple models
+\item \code{solver(AlgaeSimple)}: numerically integrates Algae_Simple scenarios
 
-\item \code{solver(DebAbj)}: Numerically integrates DEB_abj models
+\item \code{solver(DebAbj)}: Numerically integrates DEB_abj scenarios
 
 \item \code{solver(DebTox)}: Numerically integrates \emph{DEBtox} scenarios
 
 \item \code{solver(DebDaphnia)}: (deprecated) Numerically integrates \emph{DEBtox_Daphnia} scenarios
 
-\item \code{solver(GutsSd)}: Numerically integrates GUTS-SD models
+\item \code{solver(GutsSd)}: Numerically integrates GUTS-SD scenarios
 
-\item \code{solver(GutsIt)}: Numerically integrates GUTS-IT models
+\item \code{solver(GutsIt)}: Numerically integrates GUTS-IT scenarios
 
-\item \code{solver(GutsRedSd)}: Numerically integrates GUTS-RED-SD models
+\item \code{solver(GutsRedSd)}: Numerically integrates GUTS-RED-SD scenarios
 
-\item \code{solver(GutsRedIt)}: Numerically integrates GUTS-RED-IT models
+\item \code{solver(GutsRedIt)}: Numerically integrates GUTS-RED-IT scenarios
 
-\item \code{solver(LemnaSchmitt)}: Numerically integrates Lemna_Schmitt models
+\item \code{solver(LemnaSchmitt)}: Numerically integrates Lemna_Schmitt scenarios
 
-\item \code{solver(LemnaSetac)}: Numerically integrates Lemna_SETAC models
+\item \code{solver(LemnaSetac)}: Numerically integrates Lemna_SETAC scenarios
 
-\item \code{solver(MyrioExp)}: Numerically integrates \code{MyrioExp} models
+\item \code{solver(MyrioExp)}: Numerically integrates \code{MyrioExp} scenarios
 
-\item \code{solver(MyrioLog)}: Numerically integrates \code{MyrioLog} models
+\item \code{solver(MyrioLog)}: Numerically integrates \code{MyrioLog} scenarios
 
 }}

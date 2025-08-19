@@ -238,7 +238,7 @@ solver_myrioexp <- function(scenario, ...) {
   solver_myrio(scenario, ...)
 }
 #' @include solver.R
-#' @describeIn solver Numerically integrates `MyrioExp` models
+#' @describeIn solver Numerically integrates `MyrioExp` scenarios
 setMethod("solver", "MyrioExp", function(scenario, ...) solver_myrioexp(scenario, ...))
 
 # Solver for MyrioLog scenarios
@@ -247,7 +247,7 @@ solver_myriolog <- function(scenario, ...) {
   scenario@param$growthno <- 2
   solver_myrio(scenario, ...)
 }
-#' @describeIn solver Numerically integrates `MyrioLog` models
+#' @describeIn solver Numerically integrates `MyrioLog` scenarios
 setMethod("solver", "MyrioLog", function(scenario, ...) solver_myriolog(scenario, ...))
 
 # Numerically solve Myriophyllum scenarios

@@ -26,6 +26,6 @@ Pseudokirchneriella subcapitata. Environmental Toxicology and
 Chemistry, 31, 899-908. \doi{10.1002/etc.1765}
 }
 \seealso{
-\link{Algae_TKTD}
+\link{Algae_Weber}
 }
 \keyword{datasets}

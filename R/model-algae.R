@@ -521,7 +521,7 @@ solver_algae_weber <- function(scenario, method = "lsoda", hmax = 0.1, nout = 1,
 }
 
 #' @include solver.R
-#' @describeIn solver numerically integrates Algae_Weber models
+#' @describeIn solver numerically integrates Algae_Weber scenarios
 setMethod("solver", "AlgaeWeber", solver_algae_weber)
 
 # Solver function for Algae_TKTD models
@@ -568,7 +568,7 @@ solver_algae_tktd <- function(scenario, method = "lsoda", hmax = 0.1, ...) {
         dllname = "cvasi", method = method, hmax = hmax, outnames = outnames, ...)
 }
 
-#' @describeIn solver numerically integrates Algae_TKTD models
+#' @describeIn solver numerically integrates Algae_TKTD scenarios
 setMethod("solver", "AlgaeTKTD", solver_algae_tktd)
 
 
@@ -611,7 +611,7 @@ solver_algae_simple <- function(scenario, method = "lsoda", hmax = 0.1, ...) {
         ...)
 }
 
-#' @describeIn solver numerically integrates Algae_Simple models
+#' @describeIn solver numerically integrates Algae_Simple scenarios
 setMethod("solver", "AlgaeSimple", solver_algae_simple)
 #setMethod("solver", "AlgaeSimple", function(scenario, ...) solver_algae_simple(scenario, ...))
 
