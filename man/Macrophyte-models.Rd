@@ -10,7 +10,7 @@ Population models of standard test macrophytes, such as \emph{Lemna spp.}
 Available macrophyte models:
 \itemize{
 \item \link[=Lemna-models]{Lemna}
-\item \link[=Myrio]{Myriophyllum}
+\item \link[=Magma]{Magma}
 }
 }
 \section{Biomass transfer}{
@@ -43,15 +43,13 @@ transfer occurs, only \strong{if} it occurs.
 Other macrophyte models: 
 \code{\link{Lemna_SETAC}()},
 \code{\link{Lemna_Schmitt}()},
-\code{\link{Myrio}()},
-\code{\link{Myrio_log}()}
+\code{\link{Magma}}
 
 Other models: 
 \code{\link{Algae-models}},
 \code{\link{DEB-models}},
 \code{\link{GUTS-RED-models}},
-\code{\link{Lemna-models}},
-\code{\link{Myriophyllum-models}}
+\code{\link{Lemna-models}}
 }
 \concept{macrophyte models}
 \concept{models}

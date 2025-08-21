@@ -4,7 +4,7 @@
 #'
 #' Available macrophyte models:
 #' - [Lemna][Lemna-models]
-#' - [Myriophyllum][Myrio()]
+#' - [Magma][Magma()]
 #'
 #' @inheritSection Transferable Biomass transfer
 #'

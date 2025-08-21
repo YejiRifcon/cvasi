@@ -248,8 +248,8 @@ test_that("Lemna effects", {
   expect_true(all(c("BM","r") %in% names(efx)))
 })
 
-test_that("Myriophyllum", {
-  Myrio() %>%
+test_that("Magma", {
+  Magma() %>%
     set_init(c(BM=1)) %>%
     set_exposure(metsulfuron@exposure@series) %>%
     set_param(c(EC50_int=0.5,b=0.2,P=0.01,r_DW_TSL=1)) %>%

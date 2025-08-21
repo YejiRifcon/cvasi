@@ -85,7 +85,7 @@ Collate:
     'model-guts_red.R'
     'model-lemna_schmitt.R'
     'model-lemna_setac.R'
-    'model-myriophyllum.R'
+    'model-magma.R'
     'numerics.R'
     'package.R'
     'pll.R'

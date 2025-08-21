@@ -63,8 +63,7 @@ Other models:
 \code{\link{DEB-models}},
 \code{\link{GUTS-RED-models}},
 \code{\link{Lemna-models}},
-\code{\link{Macrophyte-models}},
-\code{\link{Myriophyllum-models}}
+\code{\link{Macrophyte-models}}
 }
 \concept{algae models}
 \concept{models}

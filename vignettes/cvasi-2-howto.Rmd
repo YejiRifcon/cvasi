@@ -609,11 +609,7 @@ class tree gives an overview of the scenario classes in use:
     |___|__ Lemna
     |   |   |__ LemnaSchmitt
     |   |   |__ LemnaSetac
-    |   |
-    |   |__ Myriophyllum
-    |   |   |__ MyrioExp
-    |   |   |__ MyrioLog
-    |   |
+    |   |__ Magma
     |   |__ Algae
     |       |__ AlgaeWeber
     |       |__ AlgaeTKTD

@@ -164,7 +164,7 @@ a particular model. The *cvasi* package supports multiple TKTD models, for insta
 - Macrophyte models
    - `Lemna_Schmitt()`, published by Schmitt *et al.* (2013)
    - `Lemna_SETAC()`, published by Klein *et al.* (2021)
-   - `Myrio()`, an adaption of Klein *et al.* (2021) to *Myriophyllum* at Tier 2C
+   - `Magma()`, a generic macrophyte model by Witt et al., sbumitted
 - Algae models
    - `Algae_Weber()`, published by Weber *et al.* (2012)
    - `Algae_TKTD()`, based on Weber *et al.* (2012), but with scaled damage
@@ -440,7 +440,7 @@ include:
 
 - `Lemna_Schmitt()` and derived models are parameterized according to Schmitt
    *et al.* (2013)
-- `Lemna_SETAC()`, `Myrio()`, and derived models are parameterized as recommended
+- `Lemna_SETAC()`, `Magma()`, and derived models are parameterized as recommended
    by Klein *et al.* (2021)
 
 In addition, some models require values for environmental factors such as

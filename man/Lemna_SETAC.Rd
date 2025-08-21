@@ -235,8 +235,7 @@ Other Lemna models:
 Other macrophyte models: 
 \code{\link{Lemna_Schmitt}()},
 \code{\link{Macrophyte-models}},
-\code{\link{Myrio}()},
-\code{\link{Myrio_log}()}
+\code{\link{Magma}}
 }
 \concept{Lemna models}
 \concept{macrophyte models}

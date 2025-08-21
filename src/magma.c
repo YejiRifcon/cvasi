@@ -4,8 +4,8 @@
 #include <math.h>
 /*******************************************************************
  *
- * Myriophyllum is a simplified model derived from the Lemna TKTD
- * model described by Klein et al. (2021)
+ * The Magma model (Witt et al., submitted) interprets the Tier 2C
+ * version of the Lemna model by Klein et al. (2021).
  *
  * The model provides additional output on intermediary variables on
  * request; please refer to deSolve's manual on the 'nout' parameter.
@@ -24,7 +24,7 @@ static double parms[13] = {0};
  */
 static double forc[1] = {0};
 // Internal variable for growth model selection
-static short growthmodel = 0;
+static short growth_model = 0; // magic value: 0, invalid dummy value
 
 /*
  * Define aliases
@@ -39,9 +39,9 @@ static short growthmodel = 0;
 
 // parameter aliases
 // growth model parameters
-#define k_photo_max   parms[0]
-#define growthno      parms[1]
-#define BM_L          parms[2]
+#define mu_control   parms[0]
+#define growthno     parms[1]
+#define D_L          parms[2]
 // toxicodynamic parameters
 #define E_max         parms[3]
 #define EC50_int      parms[4]
@@ -57,24 +57,24 @@ static short growthmodel = 0;
 // forcings by environmental variables
 #define C_ext forc[0]
 // constants
-#define EXP_GROWTH 1
-#define LOG_GROWTH 2
+#define EXP_GROWTH 1 // magic value: constant set in R solver code
+#define LOG_GROWTH 2 // magic value: constant set in R solver code
 
 /**
  * Parameter initializer
  */
-void myrio_init(void (* odeparms)(int *, double *))
+void magma_init(void (* odeparms)(int *, double *))
 {
   int N=13;
   odeparms(&N, parms);
 
-  growthmodel = (short)growthno;
+  growth_model = (short)growthno;
 }
 
 /**
  * Forcings initializer
  */
-void myrio_forc(void (* odeforcs)(int *, double *))
+void magma_forc(void (* odeforcs)(int *, double *))
 {
   int N=1;
   odeforcs(&N, forc);
@@ -95,7 +95,7 @@ double fCint_photo_(double C_int_unb) {
 /**
  * Derivatives
  */
-void myrio_func(int *neq, double *t, double *y, double *ydot, double *yout, int*ip)
+void magma_func(int *neq, double *t, double *y, double *ydot, double *yout, int*ip)
 {
   //
   // Toxicokinetics
@@ -126,10 +126,10 @@ void myrio_func(int *neq, double *t, double *y, double *ydot, double *yout, int*
   //
 
   // Growth model ODE
-  if(growthmodel == EXP_GROWTH) {
-    dBM = k_photo_max * f_photo * BM; // exponential growth
-  } else if(growthmodel == LOG_GROWTH) {
-    dBM = k_photo_max * f_photo * BM * (1 - BM / BM_L); // logistic growth
+  if(growth_model == EXP_GROWTH) {
+    dBM = mu_control * f_photo * BM; // exponential growth
+  } else if(growth_model == LOG_GROWTH) {
+    dBM = mu_control * f_photo * BM * (1 - BM / D_L); // logistic growth
   } else {
     Rf_error("unknown growth function selected");
   }
@@ -139,9 +139,10 @@ void myrio_func(int *neq, double *t, double *y, double *ydot, double *yout, int*
   //
   if(*ip > 0)
   {
-    yout[0] = C_int;
     // total shoot length
-    if(*ip > 1) yout[1] = BM / r_DW_TSL;
+    yout[0] = BM / r_DW_TSL;
+    // internal concentration
+    if(*ip > 1) yout[1] = C_int;
     // response function
     if(*ip > 2) yout[2] = f_photo;
     // toxicant concentration

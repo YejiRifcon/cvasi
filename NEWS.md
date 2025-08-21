@@ -24,6 +24,14 @@
           removed.
         * Additional output levels available. Ordering of output levels harmonized
           with other models.
+   * `Magma` (alias `Myriophyllum`) model:
+        * The scenario constructor has been renamed to `Magma()` to align with
+          the associated publication by Witt et al.
+        * Both model variants with exponential and logistic growth terms are
+          created with the same constructor, `Magma()`. The growth model
+          can be selected by setting parameter `growth`, e.g. `Magma(growth="log")`.
+        * The ordering of optional output variables has been modified and total
+          shoot length (`TSL`) has been moved to the front.
    * Example scenario `Rsubcapitata`:
         * Renamed to all lower-case name `rsubcapitata`.
         * Scenario settings modified to correctly reflect conditions of *R. subcapitata*
