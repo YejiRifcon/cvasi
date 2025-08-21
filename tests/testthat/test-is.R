@@ -73,78 +73,98 @@ test_that("is_param_match", {
   expect_error(is_param_match(c(), ps_unt))
 })
 
-test_that("is_GUTS", {
+test_that("is_guts", {
+  expect_true(is_guts(GUTS_RED_IT()))
+  expect_true(is_guts(GUTS_RED_SD()))
+  expect_equal(is_guts(c(GUTS_RED_IT(),GUTS_RED_IT())), c(TRUE,TRUE))
+
+  # deprecated alias
   expect_true(is_GUTS(GUTS_RED_IT()))
-  expect_true(is_GUTS(GUTS_RED_SD()))
-  expect_equal(is_GUTS(c(GUTS_RED_IT(),GUTS_RED_IT())), c(TRUE,TRUE))
+
   # invalid arguments
-  expect_false(is_GUTS(list()))
-  expect_false(is_GUTS(NA))
-  expect_false(is_GUTS(NULL))
-  expect_false(is_GUTS(1))
-  expect_equal(is_GUTS(1:5), FALSE)
+  expect_false(is_guts(list()))
+  expect_false(is_guts(NA))
+  expect_false(is_guts(NULL))
+  expect_false(is_guts(1))
+  expect_equal(is_guts(1:5), FALSE)
 })
 
-test_that("is_GUTS_IT", {
+test_that("is_guts_it", {
+  expect_true(is_guts_it(GUTS_RED_IT()))
+  expect_equal(is_guts_it(c(GUTS_RED_IT(),GUTS_RED_IT())), c(TRUE,TRUE))
+
+  # deprecated alias
   expect_true(is_GUTS_IT(GUTS_RED_IT()))
-  expect_equal(is_GUTS_IT(c(GUTS_RED_IT(),GUTS_RED_IT())), c(TRUE,TRUE))
+
   # invalid arguments
-  expect_false(is_GUTS_IT(list()))
-  expect_false(is_GUTS_IT(GUTS_RED_SD()))
-  expect_false(is_GUTS_IT(NA))
-  expect_false(is_GUTS_IT(NULL))
-  expect_false(is_GUTS_IT(1))
-  expect_equal(is_GUTS_IT(1:5), FALSE)
+  expect_false(is_guts_it(list()))
+  expect_false(is_guts_it(GUTS_RED_SD()))
+  expect_false(is_guts_it(NA))
+  expect_false(is_guts_it(NULL))
+  expect_false(is_guts_it(1))
+  expect_equal(is_guts_it(1:5), FALSE)
 })
 
-test_that("is_GUTS_SD", {
+test_that("is_guts_sd", {
+  expect_true(is_guts_sd(GUTS_RED_SD()))
+  expect_equal(is_guts_sd(c(GUTS_RED_SD(),GUTS_RED_SD())), c(TRUE,TRUE))
+
+  # deprecated alias
   expect_true(is_GUTS_SD(GUTS_RED_SD()))
-  expect_equal(is_GUTS_SD(c(GUTS_RED_SD(),GUTS_RED_SD())), c(TRUE,TRUE))
+
   # invalid arguments
-  expect_false(is_GUTS_SD(list()))
-  expect_false(is_GUTS_SD(GUTS_RED_IT()))
-  expect_false(is_GUTS_SD(NA))
-  expect_false(is_GUTS_SD(NULL))
-  expect_false(is_GUTS_SD(1))
-  expect_equal(is_GUTS_SD(1:5), FALSE)
+  expect_false(is_guts_sd(list()))
+  expect_false(is_guts_sd(GUTS_RED_IT()))
+  expect_false(is_guts_sd(NA))
+  expect_false(is_guts_sd(NULL))
+  expect_false(is_guts_sd(1))
+  expect_equal(is_guts_sd(1:5), FALSE)
 })
 
-test_that("is_DEB", {
+test_that("is_deb", {
+  expect_true(is_deb(DEB_abj()))
+  expect_equal(is_deb(c(DEB_abj(),DEB_abj())), c(TRUE,TRUE))
+
+  # deprecated alias
   expect_true(is_DEB(DEB_abj()))
-  expect_equal(is_DEB(c(DEB_abj(),DEB_abj())), c(TRUE,TRUE))
+
   # invalid arguments
-  expect_false(is_DEB(list()))
-  expect_false(is_DEB(GUTS_RED_IT()))
-  expect_false(is_DEB(NA))
-  expect_false(is_DEB(NULL))
-  expect_false(is_DEB(1))
-  expect_equal(is_DEB(1:5), FALSE)
+  expect_false(is_deb(list()))
+  expect_false(is_deb(GUTS_RED_IT()))
+  expect_false(is_deb(NA))
+  expect_false(is_deb(NULL))
+  expect_false(is_deb(1))
+  expect_equal(is_deb(1:5), FALSE)
 })
 
-test_that("is_Lemna", {
+test_that("is_lemna", {
+  expect_true(is_lemna(Lemna_Schmitt()))
+  expect_true(is_lemna(Lemna_SchmittThold()))
+  expect_true(is_lemna(Lemna_SETAC()))
+  expect_equal(is_lemna(c(Lemna_Schmitt(),Lemna_Schmitt())), c(TRUE,TRUE))
+
+  # deprecated alias
   expect_true(is_Lemna(Lemna_Schmitt()))
-  expect_true(is_Lemna(Lemna_SchmittThold()))
-  expect_true(is_Lemna(Lemna_SETAC()))
-  expect_equal(is_Lemna(c(Lemna_Schmitt(),Lemna_Schmitt())), c(TRUE,TRUE))
+
   # invalid arguments
-  expect_false(is_Lemna(list()))
-  expect_false(is_Lemna(GUTS_RED_IT()))
-  expect_false(is_Lemna(NA))
-  expect_false(is_Lemna(NULL))
-  expect_false(is_Lemna(1))
-  expect_equal(is_Lemna(1:5), FALSE)
+  expect_false(is_lemna(list()))
+  expect_false(is_lemna(GUTS_RED_IT()))
+  expect_false(is_lemna(NA))
+  expect_false(is_lemna(NULL))
+  expect_false(is_lemna(1))
+  expect_equal(is_lemna(1:5), FALSE)
 })
 
 test_that("is_LemnaThreshold", {
-  expect_true(is_LemnaThreshold(Lemna_SchmittThold()))
-  expect_equal(is_LemnaThreshold(c(Lemna_SchmittThold(),Lemna_SchmittThold())), c(TRUE,TRUE))
+  lifecycle::expect_deprecated(expect_true(is_LemnaThreshold(Lemna_SchmittThold())))
+  lifecycle::expect_deprecated(expect_equal(is_LemnaThreshold(c(Lemna_SchmittThold(),Lemna_SchmittThold())), c(TRUE,TRUE)))
   # invalid arguments
-  expect_false(is_LemnaThreshold(list()))
-  expect_false(is_LemnaThreshold(Lemna_Schmitt()))
-  expect_false(is_LemnaThreshold(NA))
-  expect_false(is_LemnaThreshold(NULL))
-  expect_false(is_LemnaThreshold(1))
-  expect_equal(is_LemnaThreshold(1:5), FALSE)
+  lifecycle::expect_deprecated(expect_false(is_LemnaThreshold(list())))
+  lifecycle::expect_deprecated(expect_false(is_LemnaThreshold(Lemna_Schmitt())))
+  lifecycle::expect_deprecated(expect_false(is_LemnaThreshold(NA)))
+  lifecycle::expect_deprecated(expect_false(is_LemnaThreshold(NULL)))
+  lifecycle::expect_deprecated(expect_false(is_LemnaThreshold(1)))
+  lifecycle::expect_deprecated(expect_equal(is_LemnaThreshold(1:5), FALSE))
 })
 
 test_that("is_regular_series", {

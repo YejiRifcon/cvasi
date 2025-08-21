@@ -2,7 +2,7 @@
 % Please edit documentation in R/is.R
 \name{is_LemnaThreshold}
 \alias{is_LemnaThreshold}
-\title{Test if argument is a LemnaThreshold model}
+\title{Test if argument is a LemnaThreshold scenario}
 \usage{
 is_LemnaThreshold(x)
 }
@@ -13,8 +13,8 @@ is_LemnaThreshold(x)
 vector of \code{logical} values
 }
 \description{
-Test if argument is a LemnaThreshold model
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
 }
 \seealso{
-\code{\link[=is_Lemna]{is_Lemna()}}
+\code{\link[=is_lemna]{is_lemna()}}
 }

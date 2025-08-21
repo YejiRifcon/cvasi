@@ -38,7 +38,7 @@ survival <- function(scenario, ...) {
     stop("multiple scenarios supplied")
 
   lifecycle::deprecate_soft("1.2.0", "survival()", "simulate()")
-  if(is_GUTS(scenario)) {
+  if(is_guts(scenario)) {
     df <- simulate(scenario, ...) %>%
     dplyr::rename(survival=S)
     return(df)

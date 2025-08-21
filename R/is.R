@@ -71,7 +71,7 @@ is_exp_series <- function(x) {
   is(x, "ExposureSeries")
 }
 
-#' Test if argument is a GUTS model
+#' Test if argument is a GUTS scenario
 #'
 #' @param x vector of `EffectScenario` objects
 #'
@@ -79,18 +79,18 @@ is_exp_series <- function(x) {
 #' @export
 #' @examples
 #' # returns `TRUE`
-#' is_GUTS(minnow_it)
-#' is_GUTS(GUTS_RED_IT())
+#' is_guts(minnow_it)
+#' is_guts(GUTS_RED_IT())
 #'
 #' # returns `c(TRUE,TRUE,TRUE)`
-#' is_GUTS(c(minnow_it, minnow_it, minnow_it))
+#' is_guts(c(minnow_it, minnow_it, minnow_it))
 #'
 #' # returns `FALSE`
-#' is_GUTS_SD(minnow_it)
-is_GUTS <- function(x) {
+#' is_guts_sd(minnow_it)
+is_guts <- function(x) {
   if(is.list(x)) {
     if(length(x) > 0)
-      return(sapply(x, is_GUTS))
+      return(sapply(x, is_guts))
   }
   if(!is_scenario(x))
     return(FALSE)
@@ -98,12 +98,18 @@ is_GUTS <- function(x) {
   startsWith(get_model(x),"GUTS-")
 }
 
-#' @describeIn is_GUTS Test if argument is a GUTS-IT model
 #' @export
-is_GUTS_IT <- function(x) {
+#' @describeIn is_guts Deprecated alias.
+is_GUTS <- function(x) {
+  is_guts(x)
+}
+
+#' @describeIn is_guts Test if argument is a GUTS-IT scenario
+#' @export
+is_guts_it <- function(x) {
   if(is.list(x)) {
     if(length(x) > 0)
-      return(sapply(x, is_GUTS_IT))
+      return(sapply(x, is_guts_it))
   }
   if(!is_scenario(x))
     return(FALSE)
@@ -112,12 +118,18 @@ is_GUTS_IT <- function(x) {
   startsWith(name,"GUTS-") & endsWith(name,"-IT")
 }
 
-#' @describeIn is_GUTS Test if argument is a GUTS-IT model
 #' @export
-is_GUTS_SD <- function(x) {
+#' @describeIn is_guts Deprecated alias.
+is_GUTS_IT <- function(x) {
+  is_guts_it(x)
+}
+
+#' @describeIn is_guts Test if argument is a GUTS-SD scenario
+#' @export
+is_guts_sd <- function(x) {
   if(is.list(x)) {
     if(length(x) > 0)
-      return(sapply(x, is_GUTS_SD))
+      return(sapply(x, is_guts_sd))
   }
   if(!is_scenario(x))
     return(FALSE)
@@ -126,16 +138,21 @@ is_GUTS_SD <- function(x) {
   startsWith(name,"GUTS-") & endsWith(name,"-SD")
 }
 
+#' @export
+#' @describeIn is_guts Deprecated alias.
+is_GUTS_SD <- function(x) {
+  is_guts_sd(x)
+}
 
-#' Test if argument is a DEB model
+#' Test if argument is a DEB scenario
 #'
 #' @param x vector of `EffectScenario` objects
 #' @return vector of `logical` values
 #' @export
-is_DEB <- function(x) {
+is_deb <- function(x) {
   if(is.list(x)) {
     if(length(x) > 0)
-      return(sapply(x, is_DEB))
+      return(sapply(x, is_deb))
   }
   if(!is_scenario(x))
     return(FALSE)
@@ -143,18 +160,21 @@ is_DEB <- function(x) {
   startsWith(get_model(x), "DEB")
 }
 
-#' Test if argument is a Lemna model
-#'
-#' Also returns `TRUE` for `LemnaThreshold` models
-#'
-#' @param x vector of [scenarios] objects
-#' @return vector of logical values
-#' @seealso [is_LemnaThreshold()]
 #' @export
-is_Lemna <- function(x) {
+#' @describeIn is_deb Deprecated alias.
+is_DEB <- function(x) {
+  is_deb(x)
+}
+
+#' Test if argument is a Lemna scenario
+#'
+#' @param x vector of [scenario] objects
+#' @return vector of logical values
+#' @export
+is_lemna <- function(x) {
   if(is.list(x)) {
     if(length(x) > 0)
-      return(sapply(x, is_Lemna))
+      return(sapply(x, is_lemna))
   }
   if(!is_scenario(x))
     return(FALSE)
@@ -162,13 +182,23 @@ is_Lemna <- function(x) {
   is(x, "Lemna")
 }
 
-#' Test if argument is a LemnaThreshold model
+#' @export
+#' @describeIn is_lemna Deprecated alias.
+is_Lemna <- function(x) {
+  is_lemna(x)
+}
+
+#' Test if argument is a LemnaThreshold scenario
+#'
+#' `r lifecycle::badge("deprecated")`
 #'
 #' @param x vector of [scenarios] objects
 #' @return vector of `logical` values
-#' @seealso [is_Lemna()]
+#' @seealso [is_lemna()]
 #' @export
 is_LemnaThreshold <- function(x) {
+  lifecycle::deprecate_warn("1.5.0", "is_LemnaThreshold()")
+
   if(is.list(x)) {
     if(length(x) > 0)
       return(sapply(x, is_LemnaThreshold))
