@@ -1,6 +1,12 @@
 # cvasi Development version
 
 * NEW
+* MODIFIED
+* DEPRECATED
+
+# cvasi 1.5.0
+
+* NEW
 
    * Log-Likelihood profiling on count-data is now supported.
    * `fit_growth()` and `fit_tktd()` ease parameter fitting to experimental data.
