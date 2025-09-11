@@ -43,8 +43,7 @@ test_that("invalid arguments", {
   expect_error(set_init(sc))
   expect_error(set_init(sc, c(D=23, 42)), "unnamed elements")
   expect_error(set_init(sc, c(D="a")), "must be numeric")
-  expect_error(set_init(sc, c(D=NA_real_)), "invalid values")
-  expect_error(set_init(sc, c(D=NaN)), "invalid values")
+  expect_warning(set_init(sc, c(D=NaN)), "invalid values")
 
   expect_warning(set_init(sc, c(foo=0)), "not state variable")
 })

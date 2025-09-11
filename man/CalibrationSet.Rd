@@ -13,7 +13,7 @@ caliset(scenario, data, weight = 1.0, tag = NULL)
 
 \item{data}{a \code{data.frame} with observed data in long format containing two
 columns: the 1st column with \code{numeric} time points and 2nd column with
-\code{numeric} data to fit to.}
+\code{numeric} data to fit to. Rows with observed \code{NA} values will be removed.}
 
 \item{weight}{optional \code{numeric} weight to be applied when calculating the
 error term for each data point. Default value is \code{1.0}, i.e. no weighting.}
@@ -51,15 +51,16 @@ for each data point.
 library(dplyr)
 
 # Get observed biomass during control experiment by Schmitt et al. (2013)
-observed <- Schmitt2013 \%>\%
-  filter(ID == "T0") \%>\%
-  select(t, BM=obs)
+observed <- schmitt2013 \%>\%
+  filter(trial == "T0") \%>\%
+  select(time, obs)
 
 # Create a scenario that represents conditions during experiment
 scenario <- metsulfuron \%>\%
   set_param(c(k_phot_fix=TRUE, k_resp=0, Emax=1)) \%>\%
   set_init(c(BM=12)) \%>\%
-  set_noexposure()
+  set_noexposure() \%>\%
+  set_bounds(list(k_phot_max=c(0, 0.5)))
 
 # Create a calibration set
 cs <- caliset(scenario, observed)
@@ -69,9 +70,7 @@ calibrate(
   cs,
   par=c(k_phot_max=1),
   output="BM",
-  method="Brent", # Brent is recommended for one-dimensional optimization
-  lower=0,        # lower parameter boundary
-  upper=0.5       # upper parameter boundary
+  method="Brent" # Brent is recommended for one-dimensional optimization
 ) -> fit
 fit$par
 

@@ -480,7 +480,7 @@ plot_ppc_combi <- function(table, xy_lim = NULL) {
 #'
 #' @return a grid of ggplots
 #' @export
-#' @global EPx len
+#' @autoglobal
 #'
 #' @examples
 #' ti <- 0:21

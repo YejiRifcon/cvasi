@@ -12,7 +12,10 @@ lik_profile(
   bounds = NULL,
   refit = TRUE,
   type = c("coarse", "fine"),
+  individual = FALSE,
   break_prof = FALSE,
+  log_scale = FALSE,
+  data_type = c("continuous", "count"),
   ...
 )
 }
@@ -29,13 +32,27 @@ is used in calibration}
 \item{bounds}{optional list of lists (including lower and upper bound): uses defaults in \code{x} object, but
 can be overwritten here (e.g. bounds <- list(k_resp = list(0,10), k_phot_max = list(0,30)) )}
 
-\item{refit}{if 'TRUE' (default), refit if a better minimum is found}
+\item{refit}{if \code{TRUE} (default), refit if a better minimum is found}
 
-\item{type}{"fine" or "coarse" (default) likelihood profiling}
+\item{type}{\code{"fine"} or \code{"coarse"} (default) likelihood profiling}
 
-\item{break_prof}{if 'TRUE' (default), stop the profiling if a better optimum is located}
+\item{individual}{if \code{FALSE} (default), the log likelihood is calculated across
+the whole dataset. Alternatively, if \code{TRUE}, log likelihoods are calculated for
+each (group of) \emph{set}(s) individually.}
 
-\item{...}{additional parameters passed on to \code{\link[stats:optim]{stats::optim()}} and \code{\link[=calibrate]{calibrate()}}}
+\item{break_prof}{If \code{TRUE}, then stop the profiling if a better optimum is located.
+Default is \code{FALSE}.}
+
+\item{log_scale}{\code{FALSE} (default), option to calculate the log likelihood on a
+log scale (i.e., observations and predictions are log transformed during calculation)}
+
+\item{data_type}{Character argument, \code{"continuous"} (default) or \code{"count"}, to specify the data type
+for the log likelihood calculations.}
+
+\item{...}{additional parameters passed on to \code{\link[=calibrate]{calibrate()}} and \code{\link[=simulate]{simulate()}}. To avoid
+parameter confusion, use argument \code{method} to select optimization algorithms
+of \code{calibrate()} and argument \code{ode_method} to select numerical integration
+schemes of package \code{deSolve}.}
 }
 \value{
 A list containing, for each parameter profiled, the likelihood
@@ -66,8 +83,31 @@ the stepsize is used as a fraction of the parameter value that is tried.
 To prevent very small stepsizes when the value goes towards zero (as can
 be the case for effect thresholds), an absolute minimum
 stepsize (\code{f_step_abs}), which is specified as a fraction of the best
-parameter value (\code{Xhat}) (unless it is zero, then algoritm takes
+parameter value (\code{Xhat}) (unless it is zero, then the algorithm takes
 something small).
+
+Note that the likelihood of the model given the data can be calculated across
+all datasets provided in the calibration set \code{x}, or calculated separately for
+each individual dataset before being combined into one likelihood (by adjusting
+the optional parameter \code{individual}). The latter
+has the advantage that different datasets can be given different weights in
+the likelihood calculation (using the "weight" slot of the \link{caliset} objects,\code{x}).
+Further, for continuous data (e.g. biomass), the likelihood considers the variance (standard
+deviation) in the log likelihood calculation, which can vary between datasets
+when the likelihood is calculated for each dataset separately before combining
+into an overall likelihood. The latter could be relevant when factors might lead
+to variability between datasets (e.g. different labs, different animal culture,...)
+
+To conduct the likelihood calculations on separate datasets, the parameter \code{individual}
+which by default is 'FALSE' can be set to 'TRUE'. Then, then log likelihoods
+are calculated for each dataset individually (or in subgroups, using the "tag" names of the
+\link{caliset} object, if provided, to group datasets with the same "tag"
+before calculating the log likelihood). Subsequently, the log
+likelihoods for the subsets are combined into an overall likelihood (considering
+the \emph{set} weights provided in the "weight" slot of the \link{caliset} object).
+Note that for each \emph{set} only 1 weight can be provided (i.e. not individual
+weights for each datapoint within the \emph{set}), and that \emph{set} with the same tag
+should have identical weight.
 
 The function was inspired by a MatLab BYOM v.6.8 procedure, created by
 Tjalling Jager. For details, please refer to BYOM (http://debtox.info/byom.html)
@@ -77,30 +117,23 @@ as well as Jager (2021).
 # Example with Lemna model - physiological params
 library(dplyr)
 
-# exposure - control run
-exp <- Schmitt2013 \%>\%
-  filter(ID == "T0") \%>\%
-  select(time=t, conc)
-
 # observations - control run
-obs <- Schmitt2013 \%>\%
-  filter(ID == "T0") \%>\%
-   select(t, BM=obs)
+obs <- schmitt2013 \%>\%
+  filter(trial == "T0")
 
 # update metsulfuron
 myscenario <- metsulfuron \%>\%
-  set_param(c(k_phot_fix = TRUE,Emax = 1)) \%>\%
-  set_init(c(BM = 12)) \%>\%
-  set_exposure(exp)
+  set_param(c(k_phot_fix = TRUE, Emax = 1)) \%>\%
+  set_init(c(BM = 0.0012)) \%>\%
+  set_noexposure() \%>\%
+  set_bounds(list(k_phot_max=c(0, 1)))
 
 fit <- calibrate(
   x = myscenario,
   par = c(k_phot_max = 1),
   data = obs,
-  output = "BM",
-  lower=0,
-  upper=1,
-  method="Brent"
+  output = "FrondNo",
+  method = "Brent"
 )
 
 # Likelihood profiling
@@ -108,7 +141,7 @@ fit <- calibrate(
 res <- lik_profile(
   x = myscenario,
   data = obs,
-  output = "BM",
+  output = "FrondNo",
   par = fit$par,
   bounds = list(
     k_phot_max = list(0, 30)
@@ -118,12 +151,12 @@ res <- lik_profile(
   method = "Brent"
 )
 # plot
-plot_lik_profile(res)
+plot(res)
 }
 
 }
 \references{
-Jager T, 2021. Robust Likelihood-Based Optimization and Uncertainty Analysis
+Jager T, 2021: Robust Likelihood-Based Optimization and Uncertainty Analysis
 of Toxicokinetic-Toxicodynamic Models. Integrated Environmental Assessment and
 Management 17:388-397. \doi{10.1002/ieam.4333}
 }

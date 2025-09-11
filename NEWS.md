@@ -2,21 +2,32 @@
 
 * NEW
 
+   * Log-Likelihood profiling on count-data is now supported.
+   * `fit_growth()` and `fit_tktd()` ease parameter fitting to experimental data.
+   * `tox_data()` and `td2cs()` ease the import of experimental tox data for
+      parameter fitting purposes.
    * `num_info()` can be used as a complement to *deSolve*'s `diagnostics()` and will also
       provide tips on how to address common issues with numerics. Can be used
       on the return value of `simulate()`.
 
 * MODIFIED
 
-   * `Lemna_SETAC` model: The default value of parameter `beta` has been updated
-      from formerly `0.025` to now `0.25`. This reflects changes to the
-      SETAC working group's report in version 1.2. The old value originated from
-      typos in former report versions.
+   * `Lemna_Schmitt` model:
+        * Default values for all forcings are now set to ease the setup of scenarios,
+          with `temp`=12°C and `rad`=15,000 kJ/(m² day) as documented by Schmitt et al. (2012).
+   * `Lemna_SETAC` model:
+        * The default value of parameter `beta` has been updated
+          from formerly `0.025` to now `0.25`. This reflects changes to the
+          SETAC working group's report in version 1.2. The old value originated from
+          typos in former report versions.
    * `Algae_Weber` model:
         * Unused state variable `C` and parameter `k` removed. External
           concentrations are solely defined by the scenario's exposure time-series.
         * Additional output levels available. Ordering of output levels harmonized
           with other models.
+        * Default values for all forcings are now set to ease the setup of scenarios,
+          with `T_act`=23°C and `I`=100 uE/m²/s following parameters
+          reported by Weber et al. (2012).
    * `Algae_TKTD` model:
         * New parameters `D` and `R_0` added to enable simulation of flow-through
           conditions, analogous to the `Algae_Weber` model.
@@ -24,6 +35,9 @@
           removed.
         * Additional output levels available. Ordering of output levels harmonized
           with other models.
+        * Default values for all forcings are now set to ease the setup of scenarios,
+          with `T_act`=23°C and `I`=100 uE/m²/s following parameters
+          reported by Weber et al. (2012).
    * `Magma` (alias `Myriophyllum`) model:
         * The scenario constructor has been renamed to `Magma()` to align with
           the associated publication by Witt et al.
@@ -36,8 +50,6 @@
         * Renamed to all lower-case name `rsubcapitata`.
         * Scenario settings modified to correctly reflect conditions of *R. subcapitata*
           exposed to *isoproturon* in reactor A of Weber et al. (2012).
-   * *Algae* models now check if all required parameters are present before
-     starting a simulation.
    * The effects calculated by `effect()` are no longer limited to a maximum
      value of `1.0`. Instead, effects are calculated similarly to *relative errors*,
      quantifying the relative difference of endpoints in control and treatment
@@ -45,6 +57,9 @@
    * Unused parameter `const_growth` removed from `Algae_Simple()` constructor.
    * `simulate_batch()` now accepts additional parameters `...` which are passed
      through to `simulate()`.
+   * `import_morse()`: default value of argument `reset_hb` set to `FALSE`, i.e.
+      the GUTS background mortality rate is no longer set to zero on import by
+      default.
    * Scenario information on the console provided by `show()` now includes
      settings of biomass transfers and moving windows.
    * Scenario sequences are now supported by `effect()` and `epx()`.
@@ -55,6 +70,9 @@
     Calls to `cache_controls()` will raise an error.
   * `simulate_batch()` was superseded by `batch()`; the function will raise
      deprecation warning when called by users.
+  * `is_LemnaThreshold()` will be removed in future versions.
+  * Soft deprecation of passing arguments `lower` and `upper` to `calibrate()`.
+    Instead, use `set_bounds()` on the affected scenarios.
 
 # cvasi 1.4.0
 

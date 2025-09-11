@@ -7,10 +7,12 @@
 
 # ------------------------------------------------------------------------------
 # Exposure data
-Schmitt_exposure <- read.table(file = "data-raw/Schmitt2013.txt",
-                             header = TRUE,
-                             sep = "\t")
+schmitt2013 <- read.table(file="data-raw/schmitt2013.txt", header=TRUE, sep="\t") %>%
+  dplyr::select(time=t, obs, trial=ID, conc) %>%
+  # values at 7.01 aren't real observations, but just a timepoint inserted for
+  # technical purposes, i.e. to represent the exposure step-function
+  dplyr::mutate(obs=ifelse(time == 7.01, NA_real_, obs))
 
-usethis::use_data(Schmitt2013, overwrite=TRUE)
+usethis::use_data(schmitt2013, overwrite=TRUE)
 
-rm(Schmitt_exposure)
+rm(schmitt2013)

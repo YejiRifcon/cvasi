@@ -129,8 +129,19 @@ The \code{Lemna_SchmittThold} model requires the following additional parameter:
 
 \section{Forcings}{
 
-Besides exposure, the Lemna model requires two environmental properties as
-time-series input: global radiation (\code{rad}, kJ/m2.d) and temperature (\code{temp}, deg C).
+Besides exposure, the model requires four environmental properties as
+time-series input:
+\itemize{
+\item \code{temp}, temperature (°C)
+\item \code{rad}, global irradiation (kJ m-2 d-1)
+}
+
+The following constant default values are used for these properties:
+\itemize{
+\item \code{temp} = 12 °C
+\item \code{rad} = 15,000 kJ m-2 d-1
+}
+
 Forcings time-series are represented by \code{data.frame} objects consisting of two
 columns. The first for time and the second for the environmental factor in question.
 

@@ -34,6 +34,68 @@ test_that("special cases", {
   expect_equal(seq@scenarios[[2]]@param$kd, p$kd)
 })
 
+test_that("arg x=ScenarioSequence", {
+  sc <- GUTS_RED_IT() %>% set_times(0:5)
+  sq <- sequence(c(sc, sc), breaks=3)
+  pv <- c(hb=23)
+  ps <- parameter_set(sc@name, pv)
+
+  ## single sequence
+  # param=vector
+  foo <- set_param(sq, pv)
+  expect_equal(foo@scenarios[[1]]@param, as.list(pv))
+  expect_equal(foo@scenarios[[2]]@param, as.list(pv))
+  # param=ParameterSet
+  foo <- set_param(sq, ps)
+  expect_equal(foo@scenarios[[1]]@param, as.list(pv))
+  expect_equal(foo@scenarios[[2]]@param, as.list(pv))
+
+  ## multiple sequences
+  lst <- list(sq, sq)
+  # param=vector
+  foo <- set_param(lst, pv)
+  expect_equal(length(foo), 2)
+  expect_equal(foo[[1]]@scenarios[[1]]@param, as.list(pv))
+  expect_equal(foo[[1]]@scenarios[[2]]@param, as.list(pv))
+  expect_equal(foo[[2]]@scenarios[[1]]@param, as.list(pv))
+  expect_equal(foo[[2]]@scenarios[[2]]@param, as.list(pv))
+  # param=ParameterSet
+  foo <- set_param(lst, ps)
+  expect_equal(length(foo), 2)
+  expect_equal(foo[[1]]@scenarios[[1]]@param, as.list(pv))
+  expect_equal(foo[[1]]@scenarios[[2]]@param, as.list(pv))
+  expect_equal(foo[[2]]@scenarios[[1]]@param, as.list(pv))
+  expect_equal(foo[[2]]@scenarios[[2]]@param, as.list(pv))
+})
+
+test_that("arg x=CalibrationSet", {
+  sc <- GUTS_RED_IT() %>% set_times(0:5)
+  cs <- caliset(sc, data=data.frame(t=0, o=0))
+  pv <- c(hb=23)
+  ps <- parameter_set(sc@name, pv)
+
+  ## single sequence
+  # param=vector
+  foo <- set_param(cs, pv)
+  expect_equal(foo@scenario@param, as.list(pv))
+  # param=ParameterSet
+  foo <- set_param(cs, ps)
+  expect_equal(foo@scenario@param, as.list(pv))
+
+  ## multiple sequences
+  lst <- list(cs, cs)
+  # param=vector
+  foo <- set_param(lst, pv)
+  expect_equal(length(foo), 2)
+  expect_equal(foo[[1]]@scenario@param, as.list(pv))
+  expect_equal(foo[[2]]@scenario@param, as.list(pv))
+  # param=ParameterSet
+  foo <- set_param(lst, ps)
+  expect_equal(length(foo), 2)
+  expect_equal(foo[[1]]@scenario@param, as.list(pv))
+  expect_equal(foo[[2]]@scenario@param, as.list(pv))
+})
+
 test_that("invalid arguments", {
   sc1 <- new("EffectScenario", name="foo")
   sc2 <- new("EffectScenario", name="foo", tag="bar")

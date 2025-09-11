@@ -10,11 +10,14 @@ setClass("ScenarioSequence",
 
 #' Sequence of scenarios
 #'
-#' Scenario sequences can be used to e.g. implement changes in model parameters
+#' Scenario sequences can be used to implement changes in model parameters
 #' over time, which otherwise would remain constant for the duration of a simulation.
 #' A sequence of scenarios is treated as a single scenario and each scenario
 #' is simulated one after the other. If scenario `n` in a sequence was simulated,
 #' scenario `n+1` will start off in the model state where `n` had ended.
+#'
+#' Sequences are generally treated the same as scenarios: Sequences can be
+#' simulated, as well as effects and EPx can be derived.
 #'
 #' ### Requirements
 #' All scenarios in a sequence must fulfill the following requirements:
@@ -26,11 +29,6 @@ setClass("ScenarioSequence",
 #' Using the `breaks` argument, the function can split up the scenarios'
 #' output times at the given break points. The break points must be within
 #' the interval defined by the superset of all output times in the sequence.
-#'
-#' ### Limitations
-#'
-#' Only simulation of sequences are supported, at the moment.
-#' Effects and effect profiles (EPx values) cannot be derived, yet.
 #'
 #' @param seq list of [scenario] objects
 #' @param breaks optional vector of *numerics*, scenarios' output times will
@@ -51,8 +49,8 @@ setClass("ScenarioSequence",
 #' # Simulate the sequence: the mortality stops after t=4.0, due to scenario #2
 #' # being simulated after t=4.0, which disabled the background mortality
 #' simulate(sq)
-# # the sequence can also be used to derive effect endpoints
-# effect(sq)
+#' # Effect endpoints can also be calculated
+#' effect(sq)
 #'
 #' @name sequence
 #' @aliases ScenarioSequence-class

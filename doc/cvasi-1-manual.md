@@ -187,8 +187,7 @@ TKTD models, for instance:
 - Macrophyte models
   - `Lemna_Schmitt()`, published by Schmitt *et al.* (2013)
   - `Lemna_SETAC()`, published by Klein *et al.* (2021)
-  - `Myrio()`, an adaption of Klein *et al.* (2021) to *Myriophyllum* at
-    Tier 2C
+  - `Magma()`, a generic macrophyte model by Witt et al., sbumitted
 - Algae models
   - `Algae_Weber()`, published by Weber *et al.* (2012)
   - `Algae_TKTD()`, based on Weber *et al.* (2012), but with scaled
@@ -541,7 +540,7 @@ Scenarios providing default values include:
 
 - `Lemna_Schmitt()` and derived models are parameterized according to
   Schmitt *et al.* (2013)
-- `Lemna_SETAC()`, `Myrio()`, and derived models are parameterized as
+- `Lemna_SETAC()`, `Magma()`, and derived models are parameterized as
   recommended by Klein *et al.* (2021)
 
 In addition, some models require values for environmental factors such
@@ -674,7 +673,7 @@ metsulfuron %>%
 #> # A tibble: 1 × 7
 #>   scenario      BM BM.dat.start BM.dat.end     r r.dat.start r.dat.end
 #>   <list>     <dbl>        <dbl>      <dbl> <dbl>       <dbl>     <dbl>
-#> 1 <LmnSchmS> 0.268            0          7 0.906           0         7
+#> 1 <LmnSchmt> 0.268            0          7 0.906           0         7
 ```
 
 Effect levels are reported as a fraction relative to a control scenario.
@@ -692,17 +691,15 @@ assessed exposure windows by setting the argument `max_only=FALSE`:
 metsulfuron %>%
   set_window(length=7, interval=1) %>%   # enable moving exposure windows
   effect(max_only=FALSE)                 # return effects of all windows
-#> # A tibble: 8 × 5
-#>   scenario              BM            r dat.start dat.end
-#>   <list>             <dbl>        <dbl>     <dbl>   <dbl>
-#> 1 <LmnSchmS>  0.268         0.906               0       7
-#> 2 <LmnSchmS>  0.265         0.895               1       8
-#> 3 <LmnSchmS>  0.248         0.829               2       9
-#> 4 <LmnSchmS>  0.205         0.669               3      10
-#> 5 <LmnSchmS>  0.147         0.463               4      11
-#> 6 <LmnSchmS>  0.0739        0.223               5      12
-#> 7 <LmnSchmS>  0.00315       0.00918             6      13
-#> 8 <LmnSchmS> -0.0000000571 -0.000000166         7      14
+#>                                                    scenario            BM             r dat.start dat.end
+#> 1 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots>  2.677706e-01  9.062999e-01         0       7
+#> 2 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots>  2.649760e-01  8.952224e-01         1       8
+#> 3 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots>  2.480735e-01  8.291086e-01         2       9
+#> 4 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots>  2.054239e-01  6.686758e-01         3      10
+#> 5 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots>  1.470648e-01  4.625745e-01         4      11
+#> 6 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots>  7.388058e-02  2.231922e-01         5      12
+#> 7 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots>  3.150812e-03  9.176908e-03         6      13
+#> 8 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> -5.714744e-08 -1.661826e-07         7      14
 ```
 
 In few cases, `effect()` may report spurious non-zero effect levels that
@@ -718,17 +715,15 @@ exposure window but leaving the remaining results unchanged:
 metsulfuron %>%
   set_window(length=7, interval=1) %>%         # enable moving exposure windows
   effect(max_only=FALSE, marginal_effect=0.01) # return effects of all windows
-#> # A tibble: 8 × 5
-#>   scenario       BM     r dat.start dat.end
-#>   <list>      <dbl> <dbl>     <dbl>   <dbl>
-#> 1 <LmnSchmS> 0.268  0.906         0       7
-#> 2 <LmnSchmS> 0.265  0.895         1       8
-#> 3 <LmnSchmS> 0.248  0.829         2       9
-#> 4 <LmnSchmS> 0.205  0.669         3      10
-#> 5 <LmnSchmS> 0.147  0.463         4      11
-#> 6 <LmnSchmS> 0.0739 0.223         5      12
-#> 7 <LmnSchmS> 0      0             6      13
-#> 8 <LmnSchmS> 0      0             7      14
+#>                                                    scenario         BM         r dat.start dat.end
+#> 1 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 0.26777063 0.9062999         0       7
+#> 2 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 0.26497598 0.8952224         1       8
+#> 3 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 0.24807349 0.8291086         2       9
+#> 4 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 0.20542389 0.6686758         3      10
+#> 5 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 0.14706478 0.4625745         4      11
+#> 6 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 0.07388058 0.2231922         5      12
+#> 7 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 0.00000000 0.0000000         6      13
+#> 8 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 0.00000000 0.0000000         7      14
 ```
 
 ## Effect profiles
@@ -746,7 +741,7 @@ metsulfuron %>% epx()
 #> # A tibble: 1 × 6
 #>   scenario   BM.EP10 r.EP10 BM.EP50 r.EP50 error                                                 
 #>   <list>       <dbl>  <dbl>   <dbl>  <dbl> <chr>                                                 
-#> 1 <LmnSchmS>   0.395  0.325      NA  0.880 " multiplication factor out of range: BM.EP50 > 1e+30"
+#> 1 <LmnSchmt>   0.395  0.325      NA  0.880 " multiplication factor out of range: BM.EP50 > 1e+30"
 ```
 
 For the sample `metsulfuron` scenario, a factor of `0.395` would need to
@@ -826,7 +821,7 @@ metsulfuron %>%
 #> # A tibble: 1 × 4
 #>   scenario   BM.EP10 BM.EP50 error                                                 
 #>   <list>       <dbl>   <dbl> <chr>                                                 
-#> 1 <LmnSchmS>   0.395      NA " multiplication factor out of range: BM.EP50 > 1e+30"
+#> 1 <LmnSchmt>   0.395      NA " multiplication factor out of range: BM.EP50 > 1e+30"
 ```
 
 In this example, the binary search finds a `BM.EP10` with acceptable

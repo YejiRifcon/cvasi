@@ -8,80 +8,44 @@
 \alias{calibrate,ScenarioSequence-method}
 \title{Fit model parameters to experimental data}
 \usage{
-calibrate(x, ...)
-
-\S4method{calibrate}{ScenarioSequence}(
-  x,
-  par,
-  output,
-  data,
-  by,
-  err_fun = c("sse", "log_sse"),
-  verbose = TRUE,
-  ...
-)
-
-\S4method{calibrate}{EffectScenario}(
-  x,
-  par,
-  output,
-  data,
-  by,
-  err_fun = c("sse", "log_sse"),
-  verbose = TRUE,
-  ...
-)
-
-\S4method{calibrate}{CalibrationSet}(x, ...)
+\S4method{calibrate}{EffectScenario}(x, output, data, ...)
 
 \S4method{calibrate}{list}(
   x,
   par,
   output,
-  err_fun = c("sse", "log_sse"),
+  err_fun = "sse",
+  log_scale = FALSE,
   verbose = TRUE,
-  endpoint = deprecated(),
-  metric_fun = deprecated(),
-  metric_total = deprecated(),
-  as_tibble = deprecated(),
-  catch_errors = deprecated(),
-  ode_method,
+  ode_method = NULL,
   ...
 )
 }
 \arguments{
-\item{x}{either a single \link{scenario} or a list of \link{caliset} objects to be fitted}
+\item{x}{either a single \link{scenario}. \link{sequence}, or a list of \link{caliset} objects
+to be fitted. If only a scenario or sequence is supplied, the additional argument
+\code{data} is required.}
+
+\item{output}{\code{character}, name of a single output column of \code{\link[=simulate]{simulate()}} to
+optimize on}
+
+\item{data}{a \code{data.frame} or return value of \code{\link[=tox_data]{tox_data()}}; the scenarios's
+output is fitted to the (observed) data. See \code{\link[=tox_data]{tox_data()}} for valid tabular
+data formats.}
 
 \item{...}{additional parameters passed on to \code{\link[stats:optim]{stats::optim()}} and \code{\link[=simulate]{simulate()}}}
 
 \item{par}{named numeric vector with parameters to fit and their start values}
 
-\item{output}{\code{character}, name of a single output column of \code{\link[=simulate]{simulate()}} to
-optimize on}
-
-\item{data}{\code{data.frame} with two or more columns with experimental data,
-1st column must contain time points, the following columns may values
-which the scenario is fitted to.}
-
-\item{by}{optional \code{character}, groups and splits the experimental data
-into multiple distinct trials and datasets before fitting}
-
 \item{err_fun}{a \code{character} choosing one of the pre-defined error functions,
 or alternatively a function implementing a custom error function. Defaults
-to \emph{Sum of squared errors}.}
+to \emph{Sum of squared errors} (\code{"sse"}).}
+
+\item{log_scale}{logical, if \code{TRUE} then observed and predicted values are
+log-transformed before the error function is evaluated. Defaults to \code{FALSE}.}
 
 \item{verbose}{\code{logical}, if \code{TRUE} then debug outputs are displayed during
 optimization}
-
-\item{endpoint}{\emph{deprecated} \code{character}, please use \code{output} instead}
-
-\item{metric_fun}{\emph{deprecated}, please use \code{err_fun} instead}
-
-\item{metric_total}{\emph{deprecated}}
-
-\item{as_tibble}{\emph{deprecated}, result can no longer be returned as a tibble}
-
-\item{catch_errors}{\emph{deprecated}, simulation errors are always caught}
 
 \item{ode_method}{optional \code{character} to select an ODE solver for \code{\link[=simulate]{simulate()}}}
 }
@@ -114,14 +78,13 @@ over all observed and predicted values.
 
 Experimental, or effect, data must be supplied as a \code{data.frame} in long format
 with at least two columns: the first column contains \code{numeric} timestamps and
-the remaining columns must contain the observed quantity. The dataset must
-contain a column that which matches with the contents of parameter \code{output}.
+the remaining columns must contain the observed quantity. The observed quantitiy
+must match in unit and meaning with the model output defined by argument \code{output}.
 
 As an example, the simulation result of \link{Lemna_Schmitt} model contains the
 output column \emph{biomass} (\code{BM}), amongst others. To fit model parameters of said
 \emph{Lemna_Schmitt} scenario based on observed biomass, the observed data must
-contain a column named \code{BM} which represents the observed biomass.
-A minimal observed dataset could look like this:
+represent biomass as well. A minimal observed dataset could look like this:
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{observed <- data.frame(time=c(0,  7, 14, 21),
                        BM=c( 12, 23, 37, 56))
@@ -138,7 +101,6 @@ can be selected by the user, but custom error functions can be used as well.
 Available pre-defined error functions:
 \itemize{
 \item \code{"sse"}: Sum of squared errors
-\item \code{"log_sse"}: Sum of squared errors on logarithmized data
 }
 
 By default, the sum of squared errors is used as the error function which
@@ -171,39 +133,31 @@ accordingly.
 }
 \section{Methods (by class)}{
 \itemize{
-\item \code{calibrate(ScenarioSequence)}: Fit single scenario \link{sequence} using a dataset
-
-\item \code{calibrate(EffectScenario)}: Fit single \link{scenario} using a dataset
-
-\item \code{calibrate(CalibrationSet)}: Fit using a single \link{CalibrationSet}
-
-\item \code{calibrate(list)}: Fit using a list of \link{caliset} objects
+\item \code{calibrate(EffectScenario)}: Fit single \link{scenario} to a (\link{tox_data}) dataset
 
 }}
 \examples{
-library(dplyr)
+# Create an artificial data set of observed frond numbers.
+# It assumes exponential growth with an effective growth rate of 0.38
+trial <- data.frame(time=0:14,
+                   fronds=12 * exp(0:14 * 0.38))
+plot(trial)
 
-# Get observed biomass during control experiment by Schmitt et al. (2013)
-observed <- Schmitt2013 \%>\%
-  filter(ID == "T0") \%>\%
-  select(t, BM=obs)
-
-# Create a scenario that represents conditions during experiment
-scenario <- metsulfuron \%>\%
-  set_param(c(k_phot_fix=TRUE, k_resp=0, Emax=1)) \%>\%
+# Create a Lemna scenario that represents unrestricted, exponential growth.
+scenario <- Lemna_Schmitt() \%>\%
+  set_param(c(k_phot_max=1, k_resp=0, EC50=1, b=1, P_up=1)) \%>\%
   set_init(c(BM=12)) \%>\%
   set_noexposure()
 
-# Fit parameter 'k_phot_max' to observed biomass growth from experiment
-calibrate(
+# Fit scenario parameter 'k_phot_max' to observed frond numbers:
+fit <- calibrate(
   scenario,
-  par=c(k_phot_max=1),
-  data=observed,
-  output="BM",
-  method="Brent", # Brent is recommended for one-dimensional optimization
-  lower=0,        # lower parameter boundary
-  upper=0.5       # upper parameter boundary
-) -> fit
-fit$par
+  par="k_phot_max",
+  data=trial,
+  output="BM"
+)
 
+# The fitted value of 'k_phot_max' matches the effective growth rate which
+# was used to create the artificial data set:
+fit$par
 }

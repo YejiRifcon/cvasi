@@ -1,4 +1,10 @@
+# TODO make print statements optional
+# TODO reuse/Abstract profiling code from lik_profile()
+
 #' Explore parameter space
+#'
+#' @description
+#' `r lifecycle::badge("experimental")`
 #'
 #' The function is aimed at getting an idea of how the parameter space
 #' of a model behaves, so that parameter identifiability problems and correlations
@@ -13,21 +19,31 @@
 #'
 #' @param x a list of [caliset] objects
 #' @param par best fit parameters from joined calibration
-#' @param res output of 'lik_profile()' function
+#' @param res output of [lik_profile()] function
 #' @param output character vector, name of output column of [simulate()] that
 #'  is used in calibration
+#' @param data only needed if `x` is a [scenario]
 #' @param sample_size number of samples to draw from each parameter interval
-#' @param max_runs max number of times to redraw samples (within a smaller space), and repeat the process
+#' @param max_iter max number of iterations to redraw samples (within a smaller space), and repeat the process
 #' @param nr_accept threshold for number of points sampled within the inner circle
 #' @param sample_factor multiplication factor for sampling (95% interval * sample factor)
+#' @param individual if `FALSE` (default), the log likelihood is calculated across
+#' the whole dataset. Alternatively, if `TRUE`, log likelihoods are calculated for
+#' each (group of) *set*(s) individually.
+#' @param log_scale `FALSE` (default), option to calculate the log likelihood on a
+#' log scale (i.e., observations and predictions are log transformed during calculation)
+#' @param data_type Character argument, `"continuous"` (default) or `"count"`, to specify the data type
+#' for the log likelihood calculations.
+#' @param max_runs *deprecated* alias for `max_iter` parameter
 #' @param ... additional parameters passed through to [simulate()]
 #'
 #' @return a list containing a plot to explore the parameter space, and the `data.frame`
 #' supporting it
 #'
+#' @seealso [plot.param_space]
 #' @export
-#' @global LLR_accept LLR_quality
-#'
+#' @autoglobal
+#' @importFrom lifecycle is_present deprecated
 #' @examples
 #' \donttest{
 #' library(dplyr)
@@ -35,15 +51,9 @@
 #' # Before applying the function, a model needs to be calibrated and its parameters profiled
 #' # Inputs for likelihood profiling
 #'
-#' # exposure - control run
-#' exp <- Schmitt2013 %>%
-#'   filter(ID == "T0") %>%
-#'   select(time=t, conc)
-#'
 #' # observations - control run
-#' obs <- Schmitt2013 %>%
-#'   filter(ID == "T0") %>%
-#'   select(t, BM=obs)
+#' obs <- schmitt2013 %>%
+#'   filter(trial == "T0")
 #'
 #' # parameters after calibration
 #' params <- c(
@@ -61,14 +71,14 @@
 #'
 #' # update metsulfuron
 #' myscenario <- metsulfuron %>%
-#'   set_init(c(BM = 5, E = 1, M_int = 0)) %>%
+#'   set_init(c(BM = 1.2, E = 1, M_int = 0)) %>%
 #'   set_param(list(
 #'     k_0 = 5E-5,
 #'     a_k = 0.25,
 #'     BM50 = 17600,
 #'     mass_per_frond = 0.1
 #'   )) %>%
-#'   set_exposure(exp) %>%
+#'   set_noexposure() %>%
 #'   set_param(params) %>%
 #'   set_bounds(bounds)
 #'
@@ -76,40 +86,64 @@
 #' res <- lik_profile(
 #'   x = myscenario,
 #'   data = obs,
-#'   output = "BM",
+#'   output = "FrondNo",
 #'   par = params,
 #'   refit = FALSE,
 #'   type = "fine",
 #'   method = "Brent"
 #' )
 #' # plot
-#' plot_lik_profile(res)
+#' plot(res)
 #'
 #' # parameter space explorer
 #' set.seed(1) # for reproducibility
 #' res_space <- explore_space(
-#'   x = list(caliset(myscenario, obs)),
+#'   x = myscenario,
+#'   data = obs,
 #'   par = params,
 #'   res = res,
-#'   output = "BM",
+#'   output = "FrondNo",
 #'   sample_size = 1000,
-#'   max_runs = 20,
+#'   max_iter = 20,
 #'   nr_accept = 100)
 #'
-#' plot_param_space(res_space)
+#' plot(res_space)
 #'
 #' }
 explore_space <- function(x,
                           par,
                           res,
                           output,
+                          data,
                           sample_size = 1000,
-                          max_runs = 30,
+                          max_iter = 30,
                           nr_accept = 100,
                           sample_factor = 1.2,
+                          individual = FALSE,
+                          log_scale = FALSE,
+                          data_type = c("continuous", "count"),
+                          max_runs=deprecated(),
                           ...) {
+  if(is_present(max_runs)) {
+    lifecycle::deprecate_warn("1.5.0", "cvasi::explore_space(max_runs)", "cvasi::explore_space(max_iter)")
+    max_iter <- max_runs
+  }
+
   # some checks
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # convert to list of calibration sets if needed
+  if (length(x) == 1) {
+    if (is_scenario(x)) {
+      if(is.null(data)) {
+        stop("Scenario provided, but argument 'data' is missing")
+      } else {
+        #message("Scenario converted to calibration set")
+        if(is.data.frame(data))
+          data <- tox_data(data)
+        x <- td2cs(x, data, output_var=output)
+      }
+    }
+  }
   # check sensible use of function
   if(length(output) > 1){
     stop("Parameter `output` must have length of one")
@@ -121,9 +155,9 @@ explore_space <- function(x,
   #if(!(output %in% x[[1]]@scenario@endpoints)){
   #  stop("Specified output not present in scenario object (x)")
   #}
-  if(!(output %in% colnames(x[[1]]@data))){
-    stop("Specified output not present in data of scenario object (x)")
-  }
+  #if(!(output %in% colnames(x[[1]]@data))){
+  #  stop("Specified output not present in data of scenario object (x)")
+  #}
   # check if explored parameters are part of the model
   if (any(names(res) %in% names(x[[1]]@scenario@param) == "FALSE")) {
     stop("Profiled parameters (in res) are not part of the scenario object (x)")
@@ -132,24 +166,64 @@ explore_space <- function(x,
   if(any(names(res) %in% names(x[[1]]@scenario@param.bounds) == "FALSE")){
     stop("No parameter boundaries available for explored parameters, please set bounds in scenario object (x)")
   }
+  if(!is.numeric(sample_factor))
+    stop("Argument 'sample_factor' must be numeric")
+  if(length(sample_factor) != 1)
+    stop("Argument 'sample_factor' must be of length one")
+  if(is.na(sample_factor) | is.nan(sample_factor))
+    stop("Argument 'sample_factor' has invalid value")
+  if(sample_factor <= 1)
+    stop("Argument 'sample_factor' out of range, must be greater than 1.0")
+
+
+  # check that a correct option for data_type is entered
+  data_type <- match.arg(data_type)
+
 
   # calculate log likelihood with original model, for the profiled pars
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  pred_orig <- list()
-  ll_orig <- list()
 
-  for (i in seq_along(x)) {
-    pred_orig[[i]] <- x[[i]]@scenario %>%
-      set_times(x[[i]]@data[, 1]) %>% # time is the 1st column, mandatory that it is the 1st column
-      set_param(par) %>% #use pars from calibration
-      simulate(...)
-    ll_orig[[i]] <- log_lik(
+  # get all data, and weights
+  all_data <- lapply(x, slot, name = "data")
+  data_tag <- unlist(lapply(x, slot, name = "tag"))
+  names(all_data) <- data_tag
+  data_weights <- unlist(lapply(x, slot, name = "weight"))
+
+  # Make predictions with the original model
+  rs <- eval_cs(set_param(x, par), output=output, verbose=FALSE, .ignore_method=TRUE, ...)
+
+  # Calulate log likelihood with the original model
+  #   Option 1: calculation of loglik across the whole dataset
+  if (individual == FALSE) {
+    # calc log lik
+    ll_orig <- log_lik(
       npars = length(res),
-      obs = x[[i]]@data[, 2], # observations are the 2nd column, mandatory that it is the 2nd column
-      pred = pred_orig[[i]][, c(output)]
+      obs = rs$obs,
+      pred = rs$pred,
+      log_scale = log_scale,
+      data_type = data_type
     )
+  } else {
+    #  Option 2: calculation for individual sub-datasets, which are then combined
+    ll_list <- list()
+    subsets <- data.frame(obs=rs$obs,
+                          pred=rs$pred,
+                          wgts=rs$wgts,
+                          tags=unlist(rs$tags)) %>%
+      dplyr::group_by(tags) %>%
+      dplyr::group_split()
+
+    for (i in seq_along(subsets)) {
+      ll_list[[i]] <- log_lik(
+        npars = length(res),
+        obs = subsets[[i]]$obs,
+        pred = subsets[[i]]$pred,
+        log_scale = log_scale,
+        data_type = data_type
+      ) * unique(subsets[[i]]$wgts)
+    }
+    ll_orig <- sum(unlist(ll_list))
   }
-  ll_orig <- sum(unlist(ll_orig))
 
   # obtain a (random uniform) sample from each parameter's profile region,
   # and include the original param values
@@ -170,21 +244,48 @@ explore_space <- function(x,
   # calculate LL, LLR for each parameter set
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   LL <- NULL
+  ## TODO parallelize sample evaluation
   for (i in 1:nrow(par_sample)) {
-    LL_tmp <- list()
-    for (j in seq_along(x)) {
-      pred <- x[[j]]@scenario %>%
-        set_param(param = par_sample[i, ]) %>%
-        set_times(x[[j]]@data[, 1]) %>%
-        simulate(...)
-      LL_tmp[[j]] <- log_lik(
+
+    # make predictions
+    rs <- eval_cs(set_param(x, par_sample[i, ]), output=output, verbose=FALSE, .ignore_method=TRUE, ...)
+
+    # calculate log likelihood
+    #   Option 1: calculation of loglik across the whole dataset
+    if (individual == FALSE) {
+      # calc log lik
+      ll_new <- log_lik( # list with only 1 entry
         npars = length(res),
-        obs = x[[j]]@data[, 2],
-        pred = pred[, output]
+        obs = rs$obs,
+        pred = rs$pred,
+        log_scale = log_scale,
+        data_type = data_type
       )
+    } else {
+      #  Option 2: calculation for individual sub-datasets, which are then combined
+      ll_list <- list()
+      subsets <- data.frame(obs=rs$obs,
+                            pred=rs$pred,
+                            wgts=rs$wgts,
+                            tags=unlist(rs$tags)) %>%
+        dplyr::group_by(tags) %>%
+        dplyr::group_split()
+
+      for (i in seq_along(subsets)) {
+        ll_list[[i]] <- log_lik(
+          npars = length(res),
+          obs = subsets[[i]]$obs,
+          pred = subsets[[i]]$pred,
+          log_scale = log_scale,
+          data_type = data_type
+        ) * unique(subsets[[i]]$wgts)
+      }
+      ll_new <- sum(unlist(ll_list))
     }
-    LL <- c(LL, sum(unlist(LL_tmp)))
-  }
+
+    LL <- c(LL, sum(unlist(ll_new)))
+  } # end of loop per sample i
+
   # add likelihood to the dataframe
   par_sample$LL <- LL
 
@@ -193,14 +294,11 @@ explore_space <- function(x,
 
   # X2 difference test to compare nested models
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # cutoffs for the Chi-square
-  # these are the values from a standard chi-square distribution table, for df 1
-  # to 10, at a alpha = 0.05 significance level,
+  # cutoffs for the Chi-square test, for alpha = 0.05 significance level,
   # these values are used in the chi-square test to determine if a fit is significantly
   # different from a previous one (i.e. larger than the cutoff given here)
-  chi_table <- c(3.8415, 5.9915, 7.8147, 9.4877, 11.070, 12.592, 14.067, 15.507, 16.919, 18.307)
-  chi_crit_j <- chi_table[length(res)] # cut-off for the 95% profile region
-  chi_crit_s <- chi_table[1] # cut-off for single par. CI
+  chi_crit_j <- stats::qchisq(p=0.95, df=length(res)) # cut-off for the 95% profile region
+  chi_crit_s <- stats::qchisq(p=0.95, df=1) # cut-off for single par. CI
 
   # clean dataset based on criteria
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -208,7 +306,7 @@ explore_space <- function(x,
   par_sample$LLR_quality <- ifelse(par_sample$LLR < chi_crit_s, "Inner", "Outer") # give preference to those with 95% CI inner rim
   # calculate nr of points within inner rim
   inner_ind <- which(par_sample$LLR_quality == "Inner") # remember which ones are in the inner rim (used/updated later in the while loop)
-  inner_size <- nrow(par_sample[inner_ind, ])
+  inner_size <- length(inner_ind)
 
   # Additional sampling (repeating steps above with slight modifications)
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -219,6 +317,9 @@ explore_space <- function(x,
 
     # obtain a (random normal) sample based on the previously "inner" rim samples
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ## FIXME TODO if 1st sampling resulted in a very small sample size of 'accepted'
+    ##    then re-sampling might fail or will be unstable, 1st sampling must be repeated
+    ##    until sample size n >= 10?
     par_sample_list <- list()
     for (i in 1:length(res)) {
       par_sample_list[[i]] <- stats::rnorm(sample_size,
@@ -246,21 +347,47 @@ explore_space <- function(x,
     # calculate LL, LLR for each parameter set
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     LL <- NULL
+    ## TODO parallize enumeration, combine code with initial LL/LLR loop
     for (i in 1:nrow(par_sample_new)) {
-      LL_tmp <- list()
-      for (j in seq_along(x)) {
-        pred <- x[[j]]@scenario %>%
-          set_param(param = par_sample_new[i, ]) %>%
-          set_times(x[[j]]@data[, 1]) %>%
-          simulate(...)
-        LL_tmp[[j]] <- log_lik(
+
+      rs <- eval_cs(set_param(x, par_sample_new[i, ]), output=output, verbose=FALSE, .ignore_method=TRUE, ...)
+
+      # calculate log likelihood
+      #   Option 1: calculation of loglik across the whole dataset
+      if (individual == FALSE) {
+        # calc log lik
+        ll_new <- log_lik( # list with only 1 entry
           npars = length(res),
-          obs = x[[j]]@data[, 2],
-          pred = pred[, output]
+          obs = rs$obs,
+          pred = rs$pred,
+          log_scale = log_scale,
+          data_type = data_type
         )
+      } else {
+        #  Option 2: calculation for individual sub-datasets, which are then combined
+        ll_list <- list()
+        subsets <- data.frame(obs=rs$obs,
+                              pred=rs$pred,
+                              wgts=rs$wgts,
+                              tags=unlist(rs$tags)) %>%
+          dplyr::group_by(tags) %>%
+          dplyr::group_split()
+
+        for (i in seq_along(subsets)) {
+          ll_list[[i]] <- log_lik(
+            npars = length(res),
+            obs = subsets[[i]]$obs,
+            pred = subsets[[i]]$pred,
+            log_scale = log_scale,
+            data_type = data_type
+          ) * unique(subsets[[i]]$wgts)
+        }
+        ll_new <- sum(unlist(ll_list))
       }
-      LL <- c(LL, sum(unlist(LL_tmp)))
-    }
+
+      LL <- c(LL, sum(unlist(ll_new)))
+    } # end of loop per sample i
+
     # add likelihood to the dataframe
     par_sample_new$LL <- LL
 
@@ -278,11 +405,11 @@ explore_space <- function(x,
 
     # calculate nr of points within inner rim (and update inner_ind)
     inner_ind <- which(par_sample$LLR_quality == "Inner") # remember which ones are in the inner rim (used/updated later in the while loop)
-    inner_size <- nrow(par_sample[inner_ind, ])
+    inner_size <- length(inner_ind)
 
     sample_iter <- sample_iter + 1
-    if (sample_iter >= max_runs) {
-      message("max nr of iterations reached, increase 'max_runs'")
+    if (sample_iter > max_iter) {
+      message("Maximum number of iterations exceeded, increase 'max_iter' for improved results")
       break()
     }
   } # end while loop
@@ -291,7 +418,7 @@ explore_space <- function(x,
   # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (min(par_sample$LLR, na.rm=TRUE) < 0) {
     message("better optimum found in space explorer")
-    best_fit_ind <- which(par_sample$LLR == min(par_sample$LLR, na.rm=TRUE))
+    best_fit_ind <- which.min(par_sample$LLR)
     par_sample$LLR_quality[best_fit_ind] <- "Best fit"
   }
   par_sample[1, "LLR_quality"] <- "Original fit"
@@ -303,103 +430,7 @@ explore_space <- function(x,
     dplyr::filter(LLR_accept == "accept") %>%
     dplyr::select(!c(LLR_accept))
 
-  class(output) <- c(class(output), "param_space")
+  class(output) <- c("param_space", class(output))
   return(output)
 }
 
-
-#  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Plot likelihood profiles or all profiled parameters
-#'
-#' The function provides bivariate parameter space plots indicating
-#' parameter draws (from the 95%confidence intervals per parameter obtained
-#' through likelihood profiling) that fall within the inner rim (in green, i.e.
-#' parameter sets which are not significantly different from the original, based
-#' on a chi-square test). The original parameter set is also indicated (in orange),
-#' and, if different from the original set, the best fit parameter set is indicated
-#'  (in red)
-#'
-#' @param x object of class param_space
-#'
-#' @return plots
-#' @global LL
-#' @export
-plot_param_space <- function(x){
-
-  # make sure x is a param_space
-  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  stopifnot("param_space" %in% class(x))
-
-  # find best LLR value, and compare with original LLR (which is per definition = 0)
-  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (min(x$LLR) < 0) {
-    plot_colors <- c("tomato", "orange", "#4DAC26",  "#0571B0")
-    plot_size <- c(3, 3, 1.5, 1.5)
-    index <- which(x$LLR_quality %in% c("Original fit", "Best fit"))
-    x$LLR_quality <- as.factor(x$LLR_quality)
-    x$LLR_quality <- factor(x$LLR_quality,
-                            levels = c("Best fit", "Original fit", "Inner", "Outer"))
-  } else {
-    plot_colors <- c( "orange","#4DAC26", "#0571B0")
-    plot_size <- c(3, 1.5, 1.5)
-    index <- which(x$LLR_quality %in% "Original fit")
-    x$LLR_quality <- as.factor(x$LLR_quality)
-    x$LLR_quality <- factor(x$LLR_quality,
-                            levels = c("Original fit", "Inner", "Outer"))
-  }
-
-
-  # reorder so that the original and best fit are the last datapoints (and
-  # thus are plotted on top)
-  x_best <- x[index,]
-  x_withoutbest <- x[-index,]
-  x <- rbind(x_withoutbest, x_best)
-
-  # plot of all correlations
-  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # dummy plot to get a legend
-  p <- x %>%
-    ggplot2::ggplot(
-      ggplot2::aes(
-        x = colnames(x)[1],
-        y = LL,
-        color = LLR_quality)) +
-    ggplot2::geom_point() +
-    ggplot2::scale_color_manual(values = plot_colors)
-  leg <- GGally::grab_legend(p)
-
-  # actual plot, complete
-  full_plot <- x %>%
-    GGally::ggpairs(
-      columns = colnames(x)[-which(colnames(x) %in% c("LL", "LLR", "LLR_quality"))],
-      ggplot2::aes(
-        color = LLR_quality,
-        size = as.factor(LLR_quality)
-      ),
-      upper = list(continuous = "blank"),
-      diag = list(continuous = "blankDiag"),
-      title = "Parameter space",
-      legend = leg
-    ) +
-    ggplot2::scale_color_manual(values = plot_colors) +
-    ggplot2::scale_size_manual(values = plot_size) +
-    ggplot2::theme_classic()
-
-  # function to modify ggpairs output (trim empty space)
-  gpairs_lower <- function(g) {
-    g$plots <- g$plots[-(1:g$nrow)]
-    g$yAxisLabels <- g$yAxisLabels[-1]
-    g$nrow <- g$nrow - 1
-
-    g$plots <- g$plots[-(seq(g$ncol, length(g$plots), by = g$ncol))]
-    g$xAxisLabels <- g$xAxisLabels[-g$ncol]
-    g$ncol <- g$ncol - 1
-
-    g
-  }
-
-  # modification of the plot
-  full_plot <- gpairs_lower(full_plot)
-
-  return(full_plot)
-}

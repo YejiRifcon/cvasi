@@ -4,7 +4,7 @@
 \alias{Lemna_SETAC}
 \alias{LemnaSetacScenario-class}
 \alias{LemnaSetac-class}
-\title{Lemna model (Klein et al. 2021)}
+\title{Lemna model v1.3 (Klein et al. 2021)}
 \usage{
 Lemna_SETAC()
 }
@@ -13,7 +13,7 @@ an S4 object of type \linkS4class{LemnaSetac}
 }
 \description{
 The model was described and published by the SETAC Europe Interest Group
-Effect Modeling (Klein et al. 2022). It is based on the \emph{Lemna} model
+Effect Modeling (Klein et al. 2021). It is based on the \emph{Lemna} model
 by Schmitt (2013). The model is a mechanistic combined
 toxicokinetic-toxicodynamic (TK/TD) and growth model for the aquatic
 macrophytes \emph{Lemna spp.}. The model simulates the development of Lemna biomass
@@ -27,9 +27,14 @@ photosynthesis rate based on internal concentrations.
 
 The model has two state variables:
 \itemize{
-\item \code{BM}, Biomass (g dw m-2)
-\item \code{M_int}, Mass of toxicant in plant population (mass per m2, e.g. ug m-2)
+\item \code{BM}, Biomass (g dw)
+\item \code{M_int}, Mass of toxicant in plant population (ng)
 }
+
+The  units of the state variables \code{BM} and \code{M_int} are to be interpreted
+as \emph{per vessel} in laboratory tests, and as \emph{per square meter} for field populations.
+The same interpretation applies to all parameters relating biomass and toxicant mass to
+other entities.
 }
 
 \section{Model parameters}{
@@ -40,8 +45,8 @@ The model has two state variables:
 \item \code{k_photo_fixed}, Model switch for unlimited growth conditions (TRUE/FALSE)
 \item \code{k_photo_max}, Maximum photosynthesis rate (d-1)
 \item \code{k_loss}, Reference loss rate (d-1)
-\item \code{BM_threshold}, Lower biomass abundance threshold,  (g dw m-2)
-\item \code{BM_min}, Reservoir for biomass recovery,  (g dw m-2)
+\item \code{BM_threshold}, Lower biomass abundance threshold,  (g dw)
+\item \code{BM_min}, Reservoir for biomass recovery,  (g dw)
 }
 \item Temperature response of photosynthesis
 \itemize{
@@ -66,7 +71,7 @@ The model has two state variables:
 }
 \item Density dependence of photosynthesis
 \itemize{
-\item \code{BM_L}, Carrying capacity (g dw m-2)
+\item \code{BM_L}, Carrying capacity (g dw)
 }
 \item Concentration response (Toxicodynamics)
 \itemize{
@@ -89,13 +94,23 @@ The model has two state variables:
 
 \section{Forcings}{
 
+External concentrations, alias \emph{exposure},  have to be provided as \emph{ug L-1}.
+
 Besides exposure, the model requires four environmental properties as
-time-series input:
+input:
 \itemize{
-\item \code{tmp}, temperature (°C)
+\item \code{tmp}, ambient temperature (°C)
 \item \code{irr}, irradiance (kJ m-2 d-1)
 \item \code{P}, Phosphorus concentration (mg P L-1)
 \item \code{N}, Nitrogen concentration (mg N L-1)
+}
+
+The following constant default values are used for these properties:
+\itemize{
+\item \code{tmp} = 12 °C
+\item \code{irr} = 15,000 kJ m-2 d-1
+\item \code{P} = 0.3 mg L-1
+\item \code{N} = 0.6 mg L-1
 }
 
 Forcings time-series are represented by \code{data.frame} objects consisting of two
@@ -116,10 +131,10 @@ with biomass transfers.
 
 \section{Simulation output}{
 
-For reasons of convenience, the return value contains by default two additional
-variables derived from simulation results: the internal concentration \code{C_int}
-as well as the number of fronds \code{FrondNo}. These can be disabled by setting
-the argument \code{nout = 0}.
+For reasons of convenience, the return value of \code{\link[=simulate]{simulate()}} contains by
+default two additional variables derived from simulation results:
+the internal concentration \code{C_int} as well as the number of fronds \code{FrondNo}.
+These can be disabled by setting the argument \code{nout = 0}.
 
 The available output levels are as follows:
 \itemize{
@@ -218,7 +233,7 @@ Klein J., Cedergreen N., Heine S., Reichenberger S., Rendal C.,
 Schmitt W., Hommen U., 2021: \emph{Refined description of the Lemna TKTD growth model
 based on Schmitt et al. (2013) - equation system and default parameters}.
 Report of the working group \emph{Lemna} of the SETAC Europe Interest Group Effect
-Modeling. Version 1.1, uploaded on 09 May 2022.
+Modeling. Version 1.3, uploaded in July 2025.
 https://www.setac.org/group/effect-modeling.html
 
 Schmitt W., Bruns E., Dollinger M., and Sowig P., 2013:

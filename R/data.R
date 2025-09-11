@@ -75,16 +75,19 @@
 #'
 "minnow_it"
 
-#' Lemna data published by Schmitt (2013)
+#' Lemna model fitted to *metsulfuron* effect data
 #'
 #' Data set for the parametrisation of a mechanistic combined
 #' toxicokinetic-toxicodynamic (TK/TD) and growth model for the aquatic
 #' macrophytes Lemna spp. as published by Schmitt *et al.* (2013).
 #' The growth model was parameterised by Schmitt et al. based on these
 #' data while toxicokinetic and toxicodynamic parameters were determined by
-#' calibrating the model using substance specific effect data of metsulfuron-methyl.
+#' fitting the model using substance specific effect data of the
+#' herbicide *metsulfuron-methyl*.
 #'
-#' @seealso [Lemna-models]
+#' The scenario is based on the [Lemna_Schmitt] model.
+#'
+#' @seealso [Lemna-models], [schmitt2013]
 #' @references
 #' Schmitt W., Bruns E., Dollinger M., and Sowig P., 2013: *Mechanistic TK/TD-model
 #' simulating the effect of growth inhibitors on Lemna populations*. Ecol Model 255,
@@ -151,16 +154,33 @@
 #' @seealso [DEBtox()]
 "dmagna"
 
-#' A Lemna data set with multiple treatment levels
+#' A Lemna effect study data set with multiple treatment levels
 #'
-#' Data are from Schmitt 2013 publication.
+#' Data was collected from Schmitt et al. (2013). The study observed the number of
+#' Lemna fronds during the study period of 14 days. The organisms were exposed
+#' to multiple concentrations of the sulfonyl urea herbicide *metsulfuron-methyl*.
 #'
-#' @seealso [Lemna-models]
+#' The number of Lemna fronds was recorded at the beginning of the experiment (t=0)
+#' and after 3, 5, 7, 10, 12, and 14 days. The exposure to *metsulfuron-methyl*
+#' was only present during the first seven days, which was followed by a recovery
+#' period of another seven days without exposure to the substance.
+#'
+#' The tabular dataset consists of four columns:
+#'
+#' - First column: time (days)
+#' - Second column: observed number of fronds (-)
+#' - Third column: trial id (-)
+#' - Fourth column: metsulfuron-methyl concentration (ug/L)
+#'
+#' An example [scenario] with parameters fitted to the experimental data set
+#' as conducted by Schmitt et al. is available as [`metsulfuron`].
+#'
+#' @seealso [Lemna-models], [metsulfuron]
 #' @references
 #' Schmitt W., Bruns E., Dollinger M., and Sowig P., 2013: *Mechanistic TK/TD-model
 #' simulating the effect of growth inhibitors on Lemna populations*. Ecol Model 255,
 #' pp. 1-10. \doi{10.1016/j.ecolmodel.2013.01.017}
-"Schmitt2013"
+"schmitt2013"
 
 #' A Weber scenario of algae exposed to isoproturon
 #'
@@ -179,3 +199,69 @@
 #' Pseudokirchneriella subcapitata. Environmental Toxicology and
 #' Chemistry, 31, 899-908. \doi{10.1002/etc.1765}
 "rsubcapitata"
+
+#' EFSA Ringtest Dataset C
+#'
+#' This dataset is part of EFSA's *GUTS* ringtest to compare results from software
+#' implementations of [GUTS-RED models][GUTS-RED-models] (EFSA 2018). The ringtest
+#' focused on [GUTS-RED-IT][GUTS_RED_IT] and [GUTS-RED-SD][GUTS_RED_SD] models.
+#'
+#' *Dataset C* in this ringtest came from the work of Geiger et al. (1988) on effects of
+#' *Diazinon* on *fathead minnow*. The dataset contains four columns, identifying the control
+#' and treatment levels, the concentrations in these treatments, the timepoint of measurement
+#' and the number of survivors.
+#'
+#' @seealso [GUTS-RED-models]
+#' @references
+#' EFSA PPR Panel (EFSA Panel on Plant Protection Products and their Residues),
+#' Ockleford C, Adriaanse P, Berny P, et al., 2018: *Scientific Opinion on the
+#' state of the art of Toxicokinetic/Toxicodynamic (TKTD) effect models for
+#' regulatory risk assessment of pesticides for aquatic organisms*. EFSA Journal 2018;
+#' 16(8):5377, 188 pp. \doi{10.2903/j.efsa.2018.5377}
+#'
+#' Geiger DL, Call DJ, and Brooke LT, 1988: Acute Toxicities of Organic Chemicals to
+#' Fathead Minnow (*Pimephales promelas*), Vol IV. Center for Lake Superior Environmental
+#' Studies, University of Wisconsin-Superior, Superior, WI, USA.
+#'
+#' https://cran.r-project.org/web/packages/GUTS/vignettes/ringTest.html
+"ringtest_c"
+
+#' EFSA Ringtest Dataset A SD
+#'
+#' This dataset is part of EFSA's *GUTS* ringtest to compare results from software
+#' implementations of [GUTS-RED models][GUTS-RED-models] (EFSA 2018). The ringtest
+#' focused on [GUTS-RED-IT][GUTS_RED_IT] and [GUTS-RED-SD][GUTS_RED_SD] models.
+#'
+#' *Dataset A SD* for the GUTS ring test is a Hypothetical data set constructed with SD.
+#'
+#' @seealso [GUTS-RED-models]
+#' @references
+#' EFSA PPR Panel (EFSA Panel on Plant Protection Products and their Residues),
+#' Ockleford C, Adriaanse P, Berny P, et al., 2018: *Scientific Opinion on the
+#' state of the art of Toxicokinetic/Toxicodynamic (TKTD) effect models for
+#' regulatory risk assessment of pesticides for aquatic organisms*. EFSA Journal 2018;
+#' 16(8):5377, 188 pp. \doi{10.2903/j.efsa.2018.5377}
+#'
+#'
+#' https://cran.r-project.org/web/packages/GUTS/vignettes/ringTest.html
+"ringtest_sd"
+
+#' EFSA Ringtest Dataset A SD
+#'
+#' This dataset is part of EFSA's *GUTS* ringtest to compare results from software
+#' implementations of [GUTS-RED models][GUTS-RED-models] (EFSA 2018). The ringtest
+#' focused on [GUTS-RED-IT][GUTS_RED_IT] and [GUTS-RED-SD][GUTS_RED_SD] models.
+#'
+#' *Dataset A IT* for the GUTS ring test is a Hypothetical data set constructed with IT.
+#'
+#' @seealso [GUTS-RED-models]
+#' @references
+#' EFSA PPR Panel (EFSA Panel on Plant Protection Products and their Residues),
+#' Ockleford C, Adriaanse P, Berny P, et al., 2018: *Scientific Opinion on the
+#' state of the art of Toxicokinetic/Toxicodynamic (TKTD) effect models for
+#' regulatory risk assessment of pesticides for aquatic organisms*. EFSA Journal 2018;
+#' 16(8):5377, 188 pp. \doi{10.2903/j.efsa.2018.5377}
+#'
+#'
+#' https://cran.r-project.org/web/packages/GUTS/vignettes/ringTest.html
+"ringtest_it"

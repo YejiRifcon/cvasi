@@ -9,7 +9,7 @@ import_morse(
   fit,
   find_sd = TRUE,
   find_it = TRUE,
-  reset_hb = TRUE,
+  reset_hb = FALSE,
   params = c("estim", "all"),
   mcmc_size,
   find.SD = deprecated(),

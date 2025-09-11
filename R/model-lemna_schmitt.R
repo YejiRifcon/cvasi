@@ -93,8 +93,15 @@ setClass("LemnaSchmittScenario", contains="LemnaSchmitt")
 #' * `threshold`, ug/L, cumulative exposure threshold
 #'
 #' @section Forcings:
-#' Besides exposure, the Lemna model requires two environmental properties as
-#' time-series input: global radiation (`rad`, kJ/m2.d) and temperature (`temp`, deg C).
+#' Besides exposure, the model requires four environmental properties as
+#' time-series input:
+#' - `temp`, temperature (°C)
+#' - `rad`, global irradiation (kJ m-2 d-1)
+#'
+#' The following constant default values are used for these properties:
+#' - `temp` = 12 °C
+#' - `rad` = 15,000 kJ m-2 d-1
+#'
 #' Forcings time-series are represented by `data.frame` objects consisting of two
 #' columns. The first for time and the second for the environmental factor in question.
 #'
@@ -196,13 +203,15 @@ Lemna_Schmitt <- function(param, init) {
                         k_phot_max=c(0,1)),
       endpoints=c("BM","r"),
       forcings.req=c("temp", "rad"),
+      forcings=list(temp=data.frame(time=0, tmp=12),
+                    rad=data.frame(time=0, irr=15000)),
       control.req=TRUE,
       init=c(BM=0.0012, E=1, M_int=0),
       transfer.interval=-1,
       transfer.biomass=0.0012,
       transfer.comp.biomass="BM",
       transfer.comp.scaled="M_int"
-  ) -> o
+  )  %>% set_noexposure() -> o
   if(!missing(param))
     o <- set_param(o, param)
   if(!missing(init))
@@ -271,8 +280,9 @@ solver_lemna_schmitt <- function(scenario, nout=2, method="lsoda", hmax=0.1, ...
   # reorder parameters for deSolve
   params <- params[c(params.req, "threshold")]
   # check if any parameter is negative apart from threshold
-  if(any(head(params,-1)<0))
+  if(any(head(params,-1)<0)) {
     stop(paste("parameter out of bounds: ",paste(names(params)[which(head(params,-1)<0)], collapse=",")))
+  }
 
   # create forcings list
   # TODO check if it can be activated without issues

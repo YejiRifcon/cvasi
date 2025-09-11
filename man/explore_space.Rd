@@ -9,10 +9,15 @@ explore_space(
   par,
   res,
   output,
+  data,
   sample_size = 1000,
-  max_runs = 30,
+  max_iter = 30,
   nr_accept = 100,
   sample_factor = 1.2,
+  individual = FALSE,
+  log_scale = FALSE,
+  data_type = c("continuous", "count"),
+  max_runs = deprecated(),
   ...
 )
 }
@@ -21,18 +26,32 @@ explore_space(
 
 \item{par}{best fit parameters from joined calibration}
 
-\item{res}{output of 'lik_profile()' function}
+\item{res}{output of \code{\link[=lik_profile]{lik_profile()}} function}
 
 \item{output}{character vector, name of output column of \code{\link[=simulate]{simulate()}} that
 is used in calibration}
 
+\item{data}{only needed if \code{x} is a \link{scenario}}
+
 \item{sample_size}{number of samples to draw from each parameter interval}
 
-\item{max_runs}{max number of times to redraw samples (within a smaller space), and repeat the process}
+\item{max_iter}{max number of iterations to redraw samples (within a smaller space), and repeat the process}
 
 \item{nr_accept}{threshold for number of points sampled within the inner circle}
 
 \item{sample_factor}{multiplication factor for sampling (95\% interval * sample factor)}
+
+\item{individual}{if \code{FALSE} (default), the log likelihood is calculated across
+the whole dataset. Alternatively, if \code{TRUE}, log likelihoods are calculated for
+each (group of) \emph{set}(s) individually.}
+
+\item{log_scale}{\code{FALSE} (default), option to calculate the log likelihood on a
+log scale (i.e., observations and predictions are log transformed during calculation)}
+
+\item{data_type}{Character argument, \code{"continuous"} (default) or \code{"count"}, to specify the data type
+for the log likelihood calculations.}
+
+\item{max_runs}{\emph{deprecated} alias for \code{max_iter} parameter}
 
 \item{...}{additional parameters passed through to \code{\link[=simulate]{simulate()}}}
 }
@@ -41,6 +60,8 @@ a list containing a plot to explore the parameter space, and the \code{data.fram
 supporting it
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+
 The function is aimed at getting an idea of how the parameter space
 of a model behaves, so that parameter identifiability problems and correlations
 between parameters can be explored. Therefore, the function samples a large
@@ -59,15 +80,9 @@ library(dplyr)
 # Before applying the function, a model needs to be calibrated and its parameters profiled
 # Inputs for likelihood profiling
 
-# exposure - control run
-exp <- Schmitt2013 \%>\%
-  filter(ID == "T0") \%>\%
-  select(time=t, conc)
-
 # observations - control run
-obs <- Schmitt2013 \%>\%
-  filter(ID == "T0") \%>\%
-  select(t, BM=obs)
+obs <- schmitt2013 \%>\%
+  filter(trial == "T0")
 
 # parameters after calibration
 params <- c(
@@ -85,14 +100,14 @@ bounds <- list(
 
 # update metsulfuron
 myscenario <- metsulfuron \%>\%
-  set_init(c(BM = 5, E = 1, M_int = 0)) \%>\%
+  set_init(c(BM = 1.2, E = 1, M_int = 0)) \%>\%
   set_param(list(
     k_0 = 5E-5,
     a_k = 0.25,
     BM50 = 17600,
     mass_per_frond = 0.1
   )) \%>\%
-  set_exposure(exp) \%>\%
+  set_noexposure() \%>\%
   set_param(params) \%>\%
   set_bounds(bounds)
 
@@ -100,27 +115,31 @@ myscenario <- metsulfuron \%>\%
 res <- lik_profile(
   x = myscenario,
   data = obs,
-  output = "BM",
+  output = "FrondNo",
   par = params,
   refit = FALSE,
   type = "fine",
   method = "Brent"
 )
 # plot
-plot_lik_profile(res)
+plot(res)
 
 # parameter space explorer
 set.seed(1) # for reproducibility
 res_space <- explore_space(
-  x = list(caliset(myscenario, obs)),
+  x = myscenario,
+  data = obs,
   par = params,
   res = res,
-  output = "BM",
+  output = "FrondNo",
   sample_size = 1000,
-  max_runs = 20,
+  max_iter = 20,
   nr_accept = 100)
 
-plot_param_space(res_space)
+plot(res_space)
 
 }
+}
+\seealso{
+\link{plot.param_space}
 }

@@ -4,7 +4,6 @@ test_that("has_forcings", {
   expect_equal(has_forcings(c(scenario,scenario)), c(TRUE,TRUE))
   # no forcings
   expect_false(has_forcings(GUTS_RED_IT()))
-  expect_false(has_forcings(Lemna_Schmitt()))
   # invalid arguments
   expect_error(has_forcings(NA))
   expect_error(has_forcings(NULL))

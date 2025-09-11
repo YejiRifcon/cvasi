@@ -6,8 +6,8 @@
 \alias{set_param,EffectScenario,ParameterSet-method}
 \alias{set_param,list,ParameterSet-method}
 \alias{set_param,list,vector-method}
-\alias{set_param,ScenarioSequence,vector-method}
-\alias{set_param,ScenarioSequence,ParameterSet-method}
+\alias{set_param,ScenarioSequence,ANY-method}
+\alias{set_param,CalibrationSet,ANY-method}
 \title{Set scenario parameters}
 \usage{
 set_param(x, param)
@@ -20,9 +20,9 @@ set_param(x, param)
 
 \S4method{set_param}{list,vector}(x, param)
 
-\S4method{set_param}{ScenarioSequence,vector}(x, param)
+\S4method{set_param}{ScenarioSequence,ANY}(x, param)
 
-\S4method{set_param}{ScenarioSequence,ParameterSet}(x, param)
+\S4method{set_param}{CalibrationSet,ANY}(x, param)
 }
 \arguments{
 \item{x}{object(s) to modify}

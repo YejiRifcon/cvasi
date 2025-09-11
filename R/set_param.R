@@ -78,16 +78,16 @@ setMethod("set_param", c("list","vector"), function(x, param) {
 # for a scenario sequence, apply parameters to each scenario in sequence
 #' @rdname set_param
 #' @export
-setMethod("set_param", c("ScenarioSequence","vector"), function(x, param) {
+setMethod("set_param", c("ScenarioSequence","ANY"), function(x, param) {
   x@scenarios <- lapply(x@scenarios, set_param, param)
   x
 })
 
-# for a scenario sequence, apply set to each scenario in sequence
+# for calisets
 #' @rdname set_param
 #' @export
-setMethod("set_param", c("ScenarioSequence","ParameterSet"), function(x, param) {
-  x@scenarios <- lapply(x@scenarios, set_param, param)
+setMethod("set_param", c("CalibrationSet", "ANY"), function(x, param) {
+  x@scenario <- set_param(x@scenario, param)
   x
 })
 

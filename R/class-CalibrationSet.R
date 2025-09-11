@@ -26,7 +26,7 @@
 #' @param scenario a [scenario] describing conditions during the experiment
 #' @param data a `data.frame` with observed data in long format containing two
 #'   columns: the 1st column with `numeric` time points and 2nd column with
-#'   `numeric` data to fit to.
+#'   `numeric` data to fit to. Rows with observed `NA` values will be removed.
 #' @param weight optional `numeric` weight to be applied when calculating the
 #'  error term for each data point. Default value is `1.0`, i.e. no weighting.
 #' @param tag optional value to identify the data, e.g. a study number
@@ -38,15 +38,16 @@
 #' library(dplyr)
 #'
 #' # Get observed biomass during control experiment by Schmitt et al. (2013)
-#' observed <- Schmitt2013 %>%
-#'   filter(ID == "T0") %>%
-#'   select(t, BM=obs)
+#' observed <- schmitt2013 %>%
+#'   filter(trial == "T0") %>%
+#'   select(time, obs)
 #'
 #' # Create a scenario that represents conditions during experiment
 #' scenario <- metsulfuron %>%
 #'   set_param(c(k_phot_fix=TRUE, k_resp=0, Emax=1)) %>%
 #'   set_init(c(BM=12)) %>%
-#'   set_noexposure()
+#'   set_noexposure() %>%
+#'   set_bounds(list(k_phot_max=c(0, 0.5)))
 #'
 #' # Create a calibration set
 #' cs <- caliset(scenario, observed)
@@ -56,9 +57,7 @@
 #'   cs,
 #'   par=c(k_phot_max=1),
 #'   output="BM",
-#'   method="Brent", # Brent is recommended for one-dimensional optimization
-#'   lower=0,        # lower parameter boundary
-#'   upper=0.5       # upper parameter boundary
+#'   method="Brent" # Brent is recommended for one-dimensional optimization
 #' ) -> fit
 #' fit$par
 #'
@@ -112,11 +111,17 @@ caliset <- function(scenario, data, weight=1, tag=NULL) {
   if(any(diff(data[, 1]) < 0))
     stop("First data column (", colnames[1], ") must be in ascending order")
 
-  # check that second column is numerical, but NAs are allowed
+  # check that second column is numerical, but NAs are allowed for now
   if(any(is.nan(data[, 2]) | is.infinite(data[, 2])))
     stop("Second data column (", colnames[2], ") contains invalid values such as Inf or NaN")
   if(any(!is.numeric(data[, 2])))
     stop("Second data column (", colnames[2], " must be numerical")
+
+  # remove NAs in observed column, if present
+  if(any(is.na(data[, 2]))) {
+    message("Excluding NAs from observed values ...")
+    data <- data[!is.na(data[, 2]), ]
+  }
 
   #
   # check weight

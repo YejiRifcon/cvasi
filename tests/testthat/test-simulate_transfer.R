@@ -183,6 +183,19 @@ test_that("non-standard biomass compartment name", {
   expect_contains(names(rs), "Foo")
 })
 
+# if a scenario cannot be simulated entirely, the solver may return NaN values. the
+# function should raise an informative warning/message if this occurs.
+test_that("handle numerical instability", {
+  sc <- metsulfuron %>%
+    set_init(c(BM=1)) %>%
+    set_times(0:5) %>%
+    set_transfer(interval=3, biomass=1)
+  # modify exposure series so that we will have invalid state variables from a
+  # certain point onwards
+  sc@forcings$temp <- data.frame(time=c(0, 2, 2.1, 5), conc=c(12, 12, -1e10, 12))
+  expect_warning(simulate(sc), "contains NaN")
+})
+
 #test_that("multiple compartments", {
 #
 #})

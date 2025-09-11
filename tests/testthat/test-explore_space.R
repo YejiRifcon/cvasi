@@ -48,7 +48,7 @@ test_that("parameter space explorer works", {
                   res = res,
                   output = "BM",
                   sample_size = 1000,
-                  max_runs = 1,   # for speed, here put to 1, please increase for improved results
+                  max_iter = 1,   # for speed, here put to 1, please increase for improved results
                   nr_accept = 100)
   )
 

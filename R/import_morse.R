@@ -30,7 +30,7 @@
 #'
 #' # modify model objects
 #' try(models %>% set_param(import_morse("path/to/morse_fit.RData")))
-import_morse <- function(fit, find_sd=TRUE, find_it=TRUE, reset_hb=TRUE,
+import_morse <- function(fit, find_sd=TRUE, find_it=TRUE, reset_hb=FALSE,
                          params=c("estim", "all"), mcmc_size, find.SD=deprecated(),
                          find.IT=deprecated(), reset.hb=deprecated(), mcmc.size=deprecated(),
                          file=deprecated()) {

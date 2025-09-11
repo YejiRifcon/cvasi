@@ -4,25 +4,49 @@
 \alias{log_lik}
 \title{Calculate log likelihood}
 \usage{
-log_lik(npars, obs, pred)
+log_lik(
+  obs,
+  pred,
+  data_type = c("continuous", "count"),
+  log_scale = FALSE,
+  npars = NULL
+)
 }
 \arguments{
-\item{npars}{named numeric vector of parameters that the model was calibrated on}
-
 \item{obs}{numeric vector of observed values}
 
 \item{pred}{numeric vector of predicted values}
+
+\item{data_type}{determines the if likelihood profiling is conducted for
+\code{"continuous"} (default) or \code{"count"} data}
+
+\item{log_scale}{\code{FALSE} (default), option to calculate the log likelihood on a
+log scale (i.e., observations and predictions are log transformed during calculation)}
+
+\item{npars}{named numeric vector of parameters that the model was calibrated on,
+required for \code{"continuous"} data type, optional for \code{"count"}.}
 }
 \value{
 the log likelihood value
 }
 \description{
 Calculates the sum of log likelihoods of each observation given
-the model parameterization (considering a normal distribution around the prediction
-for each datapoint)
+the model parameterization.
+
+Current implementations enable log likelihood calculations for:
+\enumerate{
+\item continuous data, considering a normal distribution around the prediction
+for each datapoint,
+\item count data, considering a multinomial distribution for data reporting the
+number of survivors over time.
+}
+
+The log likelihood calculation for count data was inspired by a MatLab BYOM v.6.8
+procedure, created by Tjalling Jager. For details, please refer to BYOM
+(http://debtox.info/byom.html) as well as Jager (2021).
 }
 \examples{
-
+# simple example for continuous data #####
 # observations
 obs <- c(12, 38, 92, 176, 176, 627, 1283, 2640)
 # intercept, a, and slope, b, of a Poisson regression fitted through obs
@@ -33,9 +57,43 @@ pred <- c(15.43, 32.15, 66.99, 139.57, 290.82, 605.94, 1262.52, 2630.58)
 plot(seq(1:length(obs)), obs)
 lines(seq(1:length(obs)), pred)
 log_lik(
-  npars = length(pars),
   obs = obs,
-  pred = pred
+  pred = pred,
+  npars = length(pars),
 )
 
+# example with count data and GUTS model #####
+library(dplyr)
+# observational data
+dt <- ringtest_c \%>\% filter(replicate == "E")
+myexposure <- dt \%>\% select(time, conc)
+obs <- dt \%>\%
+  mutate(S=Nsurv / max(Nsurv)) \%>\%
+  select(time, S)
+# GUTS model
+GUTS_RED_IT() \%>\%
+  set_param(c(hb = 0)) \%>\%
+  set_exposure(myexposure) -> myscenario
+# fit
+fit <- calibrate(
+  x = myscenario,
+  par = c(kd=1.2, alpha=9.2, beta=4.3),
+  data = obs,
+  output = "S")
+# update
+myscenario <- myscenario \%>\% set_param(fit$par)
+# simulate
+pred <- myscenario \%>\% simulate()
+pred <- pred$S #* max(obs$S)
+obs <- obs$S
+# calc likelihood
+log_lik(obs,
+    pred,
+    data_type = "count")
+
+}
+\references{
+Jager T, 2021. Robust Likelihood-Based Optimization and Uncertainty Analysis
+of Toxicokinetic-Toxicodynamic Models. Integrated Environmental Assessment and
+Management 17:388-397. \doi{10.1002/ieam.4333}
 }

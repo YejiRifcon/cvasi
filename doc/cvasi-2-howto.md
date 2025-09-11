@@ -10,6 +10,10 @@ N. Kehrein and contributors
 - [Moving exposure windows](#moving-exposure-windows)
 - [Simulating biomass transfers](#simulating-biomass-transfers)
 - [Fitting model parameters](#fitting-model-parameters)
+- [Obtaining confidence intervals for
+  parameters](#obtaining-confidence-intervals-for-parameters)
+- [Assessing parameter correlations and
+  identifiability](#assessing-parameter-correlations-and-identifiability)
 - [Changes in parameter values over
   time](#changes-in-parameter-values-over-time)
 - [Decrease assessment runtime](#decrease-assessment-runtime)
@@ -56,14 +60,16 @@ get_tag(myscenario)
 myscenario
 #> 'Lemna_Schmitt' scenario
 #> tag: Lab experiment #1
-#> param: Emax=1, AperBM=1000, Kbm=1, P_Temp=0, MolWeight=390.4, k_phot_fix=1, k_phot_max=0.47, k_resp=0.05, k_loss=0, Tmin=8, Tmax=40.5, Topt=26.7, t_ref=25, Q10=2, k_0=3, a_k=5e-05, C_P=0.3,
-#> CP50=0.0043, a_P=1, KiP=101, C_N=0.6, CN50=0.034, a_N=1, KiN=604, BM50=176, mass_per_frond=1e-04, BMw2BMd=16.7
+#> param: Emax=1, AperBM=1000, Kbm=1, P_Temp=0, MolWeight=390.4, k_phot_fix=1, k_phot_max=0.47, k_resp=0.05, k_loss=0, Tmin=8, Tmax=40.5, Topt=26.7,
+#> t_ref=25, Q10=2, k_0=3, a_k=5e-05, C_P=0.3, CP50=0.0043, a_P=1, KiP=101, C_N=0.6, CN50=0.034, a_N=1, KiN=604, BM50=176, mass_per_frond=1e-04,
+#> BMw2BMd=16.7
 #> init: BM=0.0012, E=1, M_int=0
 #> endpt: BM, r
 #> times: none
-#> forcs: none
-#> expsr:
-#> >> exposure series is empty
+#> forcs: temp, rad
+#> expsr: no exposure
+#>   time conc
+#> 1    0    0
 
 # Accessing scenario slots and their default values
 myscenario@forcings.req # forcings required for effect calculations
@@ -178,7 +184,7 @@ minnow_it %>%
 #> # A tibble: 1 × 3
 #>   scenario   L.EP10 L.EP50
 #>   <list>      <dbl>  <dbl>
-#> 1 <GutsRdIt>   67.0   111.
+#> 1 <GutsRdIt>   66.2   110.
 ```
 
 ## Moving exposure windows
@@ -198,17 +204,15 @@ on demand:
 metsulfuron %>% 
   set_window(length=7, interval=1) %>%
   effect(max_only=FALSE)
-#> # A tibble: 8 × 5
-#>   scenario              BM            r dat.start dat.end
-#>   <list>             <dbl>        <dbl>     <dbl>   <dbl>
-#> 1 <LmnSchmS>  0.268         0.906               0       7
-#> 2 <LmnSchmS>  0.265         0.895               1       8
-#> 3 <LmnSchmS>  0.248         0.829               2       9
-#> 4 <LmnSchmS>  0.205         0.669               3      10
-#> 5 <LmnSchmS>  0.147         0.463               4      11
-#> 6 <LmnSchmS>  0.0739        0.223               5      12
-#> 7 <LmnSchmS>  0.00315       0.00918             6      13
-#> 8 <LmnSchmS> -0.0000000571 -0.000000166         7      14
+#>                                                    scenario            BM             r dat.start dat.end
+#> 1 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots>  2.677706e-01  9.062999e-01         0       7
+#> 2 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots>  2.649760e-01  8.952224e-01         1       8
+#> 3 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots>  2.480735e-01  8.291086e-01         2       9
+#> 4 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots>  2.054239e-01  6.686758e-01         3      10
+#> 5 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots>  1.470648e-01  4.625745e-01         4      11
+#> 6 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots>  7.388058e-02  2.231922e-01         5      12
+#> 7 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots>  3.150812e-03  9.176908e-03         6      13
+#> 8 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> -5.714744e-08 -1.661826e-07         7      14
 ```
 
 The resulting table describes how effect levels change when the exposure
@@ -223,17 +227,15 @@ example:
 metsulfuron %>% 
   set_window(length=7, interval=1) %>%
   effect(max_only=FALSE, marginal_effect=1e-5)
-#> # A tibble: 8 × 5
-#>   scenario        BM       r dat.start dat.end
-#>   <list>       <dbl>   <dbl>     <dbl>   <dbl>
-#> 1 <LmnSchmS> 0.268   0.906           0       7
-#> 2 <LmnSchmS> 0.265   0.895           1       8
-#> 3 <LmnSchmS> 0.248   0.829           2       9
-#> 4 <LmnSchmS> 0.205   0.669           3      10
-#> 5 <LmnSchmS> 0.147   0.463           4      11
-#> 6 <LmnSchmS> 0.0739  0.223           5      12
-#> 7 <LmnSchmS> 0.00315 0.00918         6      13
-#> 8 <LmnSchmS> 0       0               7      14
+#>                                                    scenario          BM           r dat.start dat.end
+#> 1 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 0.267770627 0.906299882         0       7
+#> 2 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 0.264975980 0.895222396         1       8
+#> 3 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 0.248073485 0.829108643         2       9
+#> 4 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 0.205423886 0.668675815         3      10
+#> 5 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 0.147064778 0.462574486         4      11
+#> 6 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 0.073880577 0.223192196         5      12
+#> 7 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 0.003150812 0.009176908         6      13
+#> 8 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 0.000000000 0.000000000         7      14
 ```
 
 The effect over all moving windows can be visualized using `ggplot`:
@@ -250,17 +252,15 @@ metsulfuron %>%
   set_window(length=7, interval=1) %>%
   effect(max_only=FALSE) -> results
 results
-#> # A tibble: 8 × 5
-#>   scenario          BM        r dat.start dat.end
-#>   <list>         <dbl>    <dbl>     <dbl>   <dbl>
-#> 1 <LmnSchmS> 0.000113  0.000327         0       7
-#> 2 <LmnSchmS> 0.000115  0.000333         1       8
-#> 3 <LmnSchmS> 0.000109  0.000317         2       9
-#> 4 <LmnSchmS> 0.0000971 0.000282         3      10
-#> 5 <LmnSchmS> 0.000104  0.000302         4      11
-#> 6 <LmnSchmS> 0.000119  0.000345         5      12
-#> 7 <LmnSchmS> 0.000136  0.000394         6      13
-#> 8 <LmnSchmS> 0.000116  0.000337         7      14
+#>                                                    scenario           BM            r dat.start dat.end
+#> 1 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 1.125911e-04 0.0003274290         0       7
+#> 2 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 1.146069e-04 0.0003332917         1       8
+#> 3 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 1.089495e-04 0.0003168385         2       9
+#> 4 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 9.711161e-05 0.0002824107         3      10
+#> 5 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 1.037041e-04 0.0003015834         4      11
+#> 6 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 1.187988e-04 0.0003454829         5      12
+#> 7 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 1.355892e-04 0.0003943151         6      13
+#> 8 <S4 class 'LemnaSchmitt' [package "cvasi"] with 20 slots> 1.157763e-04 0.0003366926         7      14
 
 # Create a plot of effects over time
 library(ggplot2)
@@ -269,7 +269,7 @@ ggplot(results) +
   labs(x="Start of window (day)", y="Effect on biomass (%)")
 ```
 
-![](../doc/figures/howto-unnamed-chunk-9-1.png)<!-- --> The effect plot
+![](../doc/figures/howto-unnamed-chunk-12-1.png)<!-- --> The effect plot
 shows the effect for the time point where each window starts. Effects
 are not available, and therefore not plotted, for time points where the
 window exceeds the simulated timeframe.
@@ -319,7 +319,7 @@ ggplot(result) +
   labs(x="Time (days)", y="Biomass (g_dw/m2)", title="Biomass transfer every three days")
 ```
 
-![](../doc/figures/howto-unnamed-chunk-10-1.png)<!-- -->
+![](../doc/figures/howto-unnamed-chunk-13-1.png)<!-- -->
 
 Option 2: Custom time points and custom biomass
 
@@ -336,7 +336,7 @@ ggplot(result2) +
   labs(x="Time (days)", y="Biomass (g_dw/m2)", title="Biomass transfer at custom time points")
 ```
 
-![](../doc/figures/howto-unnamed-chunk-11-1.png)<!-- -->
+![](../doc/figures/howto-unnamed-chunk-14-1.png)<!-- -->
 
 ``` r
 # Call the help page of set_transfer
@@ -377,25 +377,22 @@ Option 1: direct calibration with one scenario and one effect dataset
 
 ``` r
 library(dplyr)
-# No exposure in control scenario
-exposure <- data.frame(time=0:14, conc=0)
-
 # set k_phot_fix, k_resp and Emax to the defaults recommended in Klein et al. (2022)
 # for Tier 2C studies. Set initial biomass to 12.0 (original data is in fronds
 # rather than biomass, but for sake of simplicity, no conversion was performed).
 control <- metsulfuron %>% 
   set_param(c(k_phot_fix=TRUE, k_resp=0, Emax=1)) %>% 
   set_init(c(BM=12)) %>%
-  set_exposure(exposure)
+  set_noexposure() %>%
+  set_bounds(list(k_phot_max=c(0, 0.5)))
 # `metsulfuron` is an example scenario based on Schmitt et al. (2013) and therefore
 # uses the historical, superseded nomenclature by Schmitt et al. We recommend using
 # the newer SETAC Lemna model by Klein et al. (2022) for current applications,
 # see `Lemna_SETAC()` for details.
 
 # Get control data from Schmitt et al. (2013)
-obs_control <- Schmitt2013 %>%
-  filter(ID == "T0") %>%
-  select(t, BM=obs)
+obs_control <- schmitt2013 %>%
+  filter(trial == "T0")
 
 # Fit parameter `k_phot_max` to observed data: `k_phot_max` is a physiological
 # parameter which is typically fitted to the control data
@@ -404,47 +401,58 @@ fit1 <- calibrate(
   par = c(k_phot_max = 1),
   data = obs_control,
   output = "BM",
-  method="Brent", # Brent is recommended for one-dimensional optimization
-  lower=0,        # lower parameter boundary
-  upper=0.5       # upper parameter boundary
+  method="Brent" # Brent is recommended for one-dimensional optimization
 )
-#> Calibration based on 1 data set
-#> Fitted parameter: k_phot_max
+#> Parameter fitting based on 1 data set
+#> Fitted parameter:
+#>   k_phot_max [0; 0.5]
 #> Output variable: BM
 #> Error function: Sum of squared errors
-#> Testing: k_phot_max=0.190983005625053, Error: 7773061.85714245
-#> Testing: k_phot_max=0.309016994374947, Error: 3773473.58358374
-#> Testing: k_phot_max=0.381966011250105, Error: 32461.9856839336
-#> Testing: k_phot_max=0.427050983124842, Error: 5007544.56542049
-#> Testing: k_phot_max=0.364216445670702, Error: 595120.560314554
-#> Testing: k_phot_max=0.399186938124422, Error: 350369.19391166
-#> Testing: k_phot_max=0.384141380642181, Error: 12409.3968167213
-#> Testing: k_phot_max=0.385559070535404, Error: 7053.7631866681
-#> Testing: k_phot_max=0.38609772804005, Error: 6707.7364490696
-#> Testing: k_phot_max=0.386028813940768, Error: 6698.77294988308
-#> Testing: k_phot_max=0.386023722764822, Error: 6698.734259672
-#> Testing: k_phot_max=0.386023972245524, Error: 6698.73415868153
-#> Testing: k_phot_max=0.386023961526265, Error: 6698.73415878995
-#> Testing: k_phot_max=0.386023982964783, Error: 6698.73415895307
-#> Testing: k_phot_max=0.386023972245524, Error: 6698.73415868153
-#> Best fit: k_phot_max=0.386023972245524
+#> Optimization method: Brent
+#> Testing: k_phot_max=0.190983; Error: 7.7561e+06
+#> Testing: k_phot_max=0.309017; Error: 3.76839e+06
+#> Testing: k_phot_max=0.381966; Error: 32460
+#> Testing: k_phot_max=0.427051; Error: 5.00351e+06
+#> Testing: k_phot_max=0.364209; Error: 594969
+#> Testing: k_phot_max=0.399187; Error: 349928
+#> Testing: k_phot_max=0.384143; Error: 12397.9
+#> Testing: k_phot_max=0.385561; Error: 7040.8
+#> Testing: k_phot_max=0.386101; Error: 6694.52
+#> Testing: k_phot_max=0.386032; Error: 6685.54
+#> Testing: k_phot_max=0.386026; Error: 6685.5
+#> Testing: k_phot_max=0.386027; Error: 6685.5
+#> Testing: k_phot_max=0.386027; Error: 6685.5
+#> Testing: k_phot_max=0.386027; Error: 6685.5
+#> Testing: k_phot_max=0.386027; Error: 6685.5
+#> Testing: k_phot_max=0.388027; Error: 13475.3
+#> Testing: k_phot_max=0.386027; Error: 6685.5
+#> Testing: k_phot_max=0.386027; Error: 6685.5
+#> Testing: k_phot_max=0.384027; Error: 13114.8
+#> Best fitting parameter:
+#>   k_phot_max = 0.386026744995834
 fit1$par
 #> k_phot_max 
-#>   0.386024
+#>  0.3860267
 
 # Update the scenario with fitted parameter and simulate it
 fitted_growth <- control %>% 
-  set_param(fit1$par)
+  set_param(fit1$par) %>%
+  set_bounds(list(
+    EC50=c(0, 1000),
+    b=c(0.1, 10), 
+    P_up=c(0, 0.1)
+  ))
 sim_mean <- fitted_growth %>%
   simulate() %>%
   mutate(trial="control")
 
 # Exposure and observations in long format for plotting
-treatments <- exposure %>%
+treatments <- obs_control %>%
+  select(time, conc) %>%
   mutate(trial="control")
 obs_mean <- obs_control %>%
-  mutate(trial="control") %>%
-  select(time=t, data=BM, trial)
+  select(time, BM=obs) %>%
+  mutate(trial="control")
 
 # Plot results
 plot_sd(
@@ -455,49 +463,36 @@ plot_sd(
 )
 ```
 
-![](../doc/figures/howto-unnamed-chunk-13-1.png)<!-- -->
+![](../doc/figures/howto-unnamed-chunk-16-1.png)<!-- -->
 
 Option 2: Create a list of *calibration sets* and then fit TK/TD model
 parameters on all datasets and exposure levels at the same time:
 
 ``` r
-# get all the trials and exposure series from Schmitt et al. (2013) and create
-# a list of calibration sets
-Schmitt2013 %>%
-  group_by(ID) %>%
-  group_map(function(data, key) {
-    exp <- data %>% select(t, conc)
-    obs <- data %>% select(t, BM=obs)
-    sc <- fitted_growth %>% set_exposure(exp) 
-    caliset(sc, obs)
-  }) -> cs
-
-# Fit parameters on results of all trials at once
+# Use all trials and exposure series from Schmitt et al. (2013) as input for fitting
 fit2 <- calibrate(
-  cs,
+  fitted_growth,
+  data=schmitt2013,
   par=c(EC50=0.3, b=4.16, P_up=0.005),
   output="BM",
   method="L-BFGS-B",
-  lower=c(0, 0.1, 0),
-  upper=c(1000, 10, 0.1),
   verbose=FALSE
 )
 fit2$par
-#>      EC50         b      P_up 
-#> 0.5215368 4.6905906 0.0171712
+#>       EC50          b       P_up 
+#> 0.51139437 4.16159683 0.01416002
 
 # Update the scenario with fitted parameter and simulate all trials
 fitted_tktd <- fitted_growth %>%
   set_param(fit2$par)
 
-treatments <- Schmitt2013 %>% select(time=t, conc, trial=ID)
+treatments <- schmitt2013 %>% select(time, conc, trial)
 rs_mean <- fitted_tktd %>%
   batch(treatments) %>%
   simulate()
 
 # Observations in long format for plotting
-obs_mean <- Schmitt2013 %>%
-  select(time=t, data=obs, trial=ID)
+obs_mean <- schmitt2013 %>% select(time, obs, trial)
 
 # Plot results
 plot_sd(
@@ -508,10 +503,12 @@ plot_sd(
 )
 ```
 
-![](../doc/figures/howto-unnamed-chunk-14-1.png)<!-- -->
+![](../doc/figures/howto-unnamed-chunk-17-1.png)<!-- -->
 
 The resulting scenario with fitted parameters shows a very good fit with
 the observed effects from experiments.
+
+## Obtaining confidence intervals for parameters
 
 After model parameters have been calibrated during model fitting against
 observational data, the parameter estimates obtained can be further
@@ -519,7 +516,7 @@ evaluated by assessing the 95% confidence intervals for each parameter
 through likelihood profiling.
 
 First, the profiling is conducted using the `lik_profile()` function.
-Then, the profiles can be visualized using `plot_lik_profile()`.
+Then, the profiles can be visualized using `plot()`.
 
 ``` r
 # using the calibration set and calibrated parameters from the previous Lemna 
@@ -527,41 +524,104 @@ Then, the profiles can be visualized using `plot_lik_profile()`.
 # We set parameter boundaries to constrain the likelihood profiling within these 
 # boundaries (this is optional)
 
-# conduct profiling
-res <- lik_profile(x = cs, # the calibration set
-                   par = fit2$par, # the parameter values after calibration
+# Calibrate a model to a list of calibration sets
+fit <- calibrate(
+  fitted_growth,
+  data=schmitt2013,
+  par=c(EC50=0.3, b=4.16, P_up=0.005),
+  output="BM",
+  method="L-BFGS-B",
+  verbose=FALSE
+)
+
+# Conduct profiling
+res <- lik_profile(x = fitted_growth,
+                   data = schmitt2013,
+                   par = fit$par, # the parameter values after calibration
                    output = "BM", # the observational output against which to 
                                   # compare the model fit
                    bounds = list(EC50_int = list(0.1, 4), 
                                  b = list(1, 5),
                                  P = list(0.0001, 0.2)))
 #> Profiling: EC50
-#> start param value: 0.522LL:-237.227
+#> start param value: 0.511
+#> LL:-233.964
 #> hit 95% Conf Region, changing direction
 #> hit 95% Conf Region, end of profiling
 #> Profiling: b
-#> start param value: 4.691LL:-237.227
+#> start param value: 4.162
+#> LL:-233.964
 #> hit 95% Conf Region, changing direction
+#> critical limit reached, end of profiling
 #> Profiling: P_up
-#> start param value: 0.017LL:-237.227
+#> start param value: 0.014
+#> LL:-233.964
 #> hit 95% Conf Region, changing direction
 #> hit 95% Conf Region, end of profiling
-# visualise profiling results
-plot_lik_profile(res)
+# Visualise profiling results
+plot(res)
 ```
 
-![](../doc/figures/howto-unnamed-chunk-15-1.png)<!-- -->
+![](../doc/figures/howto-unnamed-chunk-18-1.png)<!-- -->
 
 ``` r
 
-# access 95% confidence intervals of profiled parameters
+# Access 95% confidence intervals of profiled parameters
 res$EC50$confidence_interval
-#> [1] 0.5151939 0.5279234
+#> [1] 0.5043907 0.5182930
 res$b$confidence_interval
-#> [1] 4.377094 5.000000
+#> [1] 4.089679 4.334786
 ```
 
-Finally, relations between estimates of the calibrated parameters can be
+Optionally, we can adapt caliset weights and tags, for example, a study
+was done by 2 labs (A and B), where the data of lab 2 should be
+considered to have more weight. In this case, the `individual` argument
+needs to be set to TRUE.
+
+``` r
+# Create calisets
+cs <- td2cs(fitted_growth, tox_data(schmitt2013))
+# Define tags and weights
+lab_tags <- c("A", "B", "B", "A", "B", "B", "B")
+lab_weights <- c(1, 1.5, 1.5, 1, 1.5, 1.5, 1.5)
+
+for(i in 1:length(cs)){
+  cs[[i]]@tag <- lab_tags[i]
+  cs[[i]]@weight <- lab_weights[i]
+}
+
+res_2 <- lik_profile(x = cs, # the calibration set
+                   par = fit$par, # the parameter values after calibration
+                   output = "BM", # the observational output against which to 
+                   # compare the model fit
+                   bounds = list(EC50_int = list(0.1, 4), 
+                                 b = list(1, 5),
+                                 P = list(0.0001, 0.2)),
+                   individual = TRUE)
+#> Profiling: EC50
+#> start param value: 0.511
+#> LL:-317.379
+#> hit 95% Conf Region, changing direction
+#> hit 95% Conf Region, end of profiling
+#> Profiling: b
+#> start param value: 4.162
+#> LL:-317.379
+#> hit 95% Conf Region, changing direction
+#> critical limit reached, end of profiling
+#> Profiling: P_up
+#> start param value: 0.014
+#> LL:-317.379
+#> hit 95% Conf Region, changing direction
+#> hit 95% Conf Region, end of profiling
+                   
+plot(res_2)
+```
+
+![](../doc/figures/howto-unnamed-chunk-19-1.png)<!-- -->
+
+## Assessing parameter correlations and identifiability
+
+Relations between estimates of the calibrated parameters can be
 visualized using a parameter space explorer. This supports identifying
 potential parameter correlations and identifiability issues.
 
@@ -573,7 +633,7 @@ model with the new, randomly draw set.
 
 First, the parameter space exploration is conducted using the
 `explore_space()` function. Then, the space can be visualized using
-`plot_param_space()`.
+`plot()`.
 
 ``` r
 # Call the help page for more information about the parameter space explorer
@@ -582,7 +642,39 @@ First, the parameter space exploration is conducted using the
 
 ``` r
 
-# conduct space exploration
+# Calibrate a model to a list of calibration sets
+cs <- td2cs(fitted_growth, tox_data(schmitt2013))
+fit <- calibrate(
+  cs,
+  par=c(EC50=0.3, b=4.16, P_up=0.005),
+  output="BM",
+  method="L-BFGS-B",
+  verbose=FALSE
+)
+# conduct profiling
+res <- lik_profile(x = cs, # the calibration set
+                   par = fit$par, # the parameter values after calibration
+                   output = "BM", # the observational output against which to 
+                                  # compare the model fit
+                   bounds = list(EC50_int = list(0.1, 4), 
+                                 b = list(1, 5),
+                                 P = list(0.0001, 0.2)))
+#> Profiling: EC50
+#> start param value: 0.511
+#> LL:-233.964
+#> hit 95% Conf Region, changing direction
+#> hit 95% Conf Region, end of profiling
+#> Profiling: b
+#> start param value: 4.162
+#> LL:-233.964
+#> hit 95% Conf Region, changing direction
+#> critical limit reached, end of profiling
+#> Profiling: P_up
+#> start param value: 0.014
+#> LL:-233.964
+#> hit 95% Conf Region, changing direction
+#> hit 95% Conf Region, end of profiling
+# Conduct space exploration
 res_space <- explore_space(
   x = cs,
   par = fit2$par,
@@ -591,11 +683,11 @@ res_space <- explore_space(
 #> resampling parameter space, iteration: 1
 #> better optimum found in space explorer
 
-# visualize the parameter space
-plot_param_space(res_space)
+# Visualize the parameter space
+plot(res_space)
 ```
 
-![](../doc/figures/howto-unnamed-chunk-17-1.png)<!-- -->
+![](../doc/figures/howto-unnamed-chunk-21-1.png)<!-- -->
 
 ## Changes in parameter values over time
 
@@ -782,11 +874,7 @@ use:
     |___|__ Lemna
     |   |   |__ LemnaSchmitt
     |   |   |__ LemnaSetac
-    |   |
-    |   |__ Myriophyllum
-    |   |   |__ MyrioExp
-    |   |   |__ MyrioLog
-    |   |
+    |   |__ Magma
     |   |__ Algae
     |       |__ AlgaeWeber
     |       |__ AlgaeTKTD
@@ -1064,9 +1152,8 @@ Lemna_Schmitt() %>%               # the Lemna model by Schmitt et al. (2013)
 ``` r
 ## simulate with model, under a range of different exposure scenarios
 # create several exposure scenarios
-exp_scen <- data.frame(time = Schmitt2013$t,
-                       conc = Schmitt2013$conc,
-                       trial = Schmitt2013$ID)
+exp_scen <- schmitt2013 %>% select(time, conc, trial)
+
 # simulate for all these scenarios
 results <- metsulfuron %>%
   batch(exp_scen) %>%
@@ -1080,7 +1167,7 @@ plot_sd(
 )
 ```
 
-<img src="../doc/figures/howto-unnamed-chunk-31-1.png" width="100%" />
+<img src="../doc/figures/howto-unnamed-chunk-35-1.png" width="100%" />
 
 ``` r
 
@@ -1101,4 +1188,4 @@ plot_sd(
 )
 ```
 
-<img src="../doc/figures/howto-unnamed-chunk-31-2.png" width="100%" />
+<img src="../doc/figures/howto-unnamed-chunk-35-2.png" width="100%" />

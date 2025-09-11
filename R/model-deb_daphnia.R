@@ -33,9 +33,8 @@ DEB_Daphnia <- function() {
                     "Lm_ref", "len", "Tbp", "MoA", "FB"),
         endpoints=c("L","R","S"),
         control.req=TRUE,
-        init=c("D"=0,"L"=0,"R"=0,"S"=1),
-        exposure=no_exposure()
-    )
+        init=c("D"=0,"L"=0,"R"=0,"S"=1)
+    ) %>% set_noexposure()
 }
 
 ########################

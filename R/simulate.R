@@ -318,6 +318,12 @@ simulate_transfer <- function(scenario, times, .in_sequence=FALSE, ...) {
     init[[scenario@transfer.comp.biomass]] <- tr_biomass[i]
     # scale other compartments relative to new biomass
     init[scenario@transfer.comp.scaled] <- init[scenario@transfer.comp.scaled] * BM.fac
+    # in case of e.g. numerical issues, NaN can occur in sim output and new initial states
+    # TODO check if error due to e.g. numerics, to provide a targeted messages
+    if(any(is.nan(init))) {
+      warning("Simulation result contains NaN values, please check parameters and numerical stability.", call.=FALSE)
+      break
+    }
     scenario <- set_init(scenario, init)
     t_start <- tr
   }

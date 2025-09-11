@@ -125,7 +125,7 @@ GUTS_SD <- function(scaled_ci=FALSE, dose_metric=c("D", "Ci", "Cw")) {
       endpoints = c("L"),
       init = init,
       control.req=FALSE
-  )
+  ) %>% set_noexposure()
 }
 
 # TODO currently only implements exponentially distributed individual thresholds z
@@ -237,7 +237,7 @@ GUTS_IT <- function(scaled_ci=FALSE, dose_metric=c("D", "Ci", "Cw")) {
       endpoints = c("L"),
       init = init,
       control.req=FALSE
-  )
+  ) %>% set_noexposure()
 }
 
 ########################

@@ -162,7 +162,7 @@ Magma <- function(growth=c("exp", "log")) {
       transfer.comp.biomass="BM",
       transfer.comp.scaled="M_int",
       growth_model=growth
-  )
+  ) %>% set_noexposure()
 
   # Adapt list of parameters for logistic growth
   if(growth == "log") {

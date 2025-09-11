@@ -4,7 +4,7 @@
 \alias{Algae_Simple}
 \alias{AlgaeSimple-class}
 \alias{AlgaeSimpleScenario-class}
-\title{Algae model with exponential growth but without additional forcings}
+\title{Simple algae model without environment (Rendal et al. 2023)}
 \usage{
 Algae_Simple()
 }
@@ -20,7 +20,8 @@ of growth rates, which are, in contrast to the Weber model, independent on
 environmental conditions which are usually optimal in laboratory effect studies.
 The toxicodynamic sub-model describes the effects of growth-inhibiting
 substances through a corresponding reduction in the photosynthesis rate on the
-basis of either external or internal concentrations (depending on user choice of 'scaled' parameter setting).
+basis of either external or internal concentrations (depending on user choice
+of \emph{scaled} parameter setting).
 }
 \section{State variables}{
 
@@ -112,12 +113,16 @@ Maximum step length in time suitable for most simulations.
 }
 
 \references{
+Rendal C, Witt J, Preuss TG, Ashauer R, 2023: A Framework for Algae Modeling
+in Regulatory Risk Assessment. Environ. Toxicol. Chem. 42(8), pp. 1823-1838.
+\doi{10.1002/etc.5649}
+
 Weber D, Schaefer D, Dorgerloh M, Bruns E, Goerlitz G, Hammel K, Preuss TG
-and Ratte HT, 2012. Combination of a higher-tier flow-through system and
+and Ratte HT, 2012: Combination of a higher-tier flow-through system and
 population modeling to assess the effects of time-variable exposure of
 isoproturon on the green algae Desmodesmus subspictatus and
-Pseudokirchneriella subcapitata. Environmental Toxicology and
-Chemistry, 31(4), 899-908. \doi{10.1002/etc.1765}
+Pseudokirchneriella subcapitata. Environ. Toxicol. Chem. 31(4), pp. 899-908.
+\doi{10.1002/etc.1765}
 }
 \seealso{
 \link{Scenarios}, \link{Transferable}

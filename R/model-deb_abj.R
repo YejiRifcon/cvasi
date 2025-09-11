@@ -132,7 +132,7 @@ DEB_abj <- function() {
       control.req=TRUE,
       init=c("L"=0,"E"=0,"H"=0,"R"=0,"cV"=0,"Lmax"=0),
       exposure=no_exposure()
-  )
+  ) %>% set_noexposure()
 }
 
 

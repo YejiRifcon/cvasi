@@ -4,7 +4,7 @@
 \alias{Algae_TKTD}
 \alias{AlgaeTKTD-class}
 \alias{AlgaeTKTDScenario-class}
-\title{Algae model with exponential growth, forcings (P, I) and scaled damage}
+\title{Algae model variant (Weber et al. 2012) with scaled damage}
 \usage{
 Algae_TKTD()
 }
@@ -66,13 +66,24 @@ The model has four state variables:
 
 \section{Forcings}{
 
-Besides exposure events (Cw), the \emph{Algae} model requires two environmental
-properties as time-series input: Irradiance (\code{I}, uE/m²/s) and
-temperature (\code{T_act}, deg C).
-Forcings time-series are represented by \code{data.frame} objects
-consisting of two columns. The first for time and the second for the
-environmental factor in question. The input format for all forcings is a
-list of the data frames.
+The Weber model variant requires two environmental properties as time-series input:
+\itemize{
+\item \code{T_act}, temperature (°C), and
+\item \code{I}, irradiance (uE/m²/s).
+}
+
+The following constant default values are used for these properties:
+\itemize{
+\item \code{T_act} = 23 °C
+\item \code{I} = 100 uE/m²/s
+}
+
+Forcings time-series are represented by \code{data.frame} objects consisting of two
+columns. The first for time and the second for the environmental factor in question.
+
+Entries of the \code{data.frame} need to be ordered chronologically. A time-series
+can consist of only a single row; in this case it will represent constant
+environmental conditions. See \link{scenarios} for more details.
 }
 
 \section{Simulation output}{

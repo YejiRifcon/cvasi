@@ -46,8 +46,8 @@ setMethod("set_init","EffectScenario", function(x, init) {
     ints <- intersect(nms, get_vars(x))
     init <- init[ints]
 
-    if(any(is.na(init) | is.nan(init) | is.infinite(init)))
-      stop("Argument `init` contains invalid values such as NA, NaN, or Inf.")
+    if(any(is.nan(init) | is.infinite(init)))
+      warning("Argument `init` contains invalid values such as NaN or Inf.")
     if(!is.numeric(init))
       stop("Argument `init`: initial states must be numeric.")
     x@init[ints] <- init[ints]

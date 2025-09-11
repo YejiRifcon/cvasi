@@ -3,9 +3,9 @@
 \docType{data}
 \name{metsulfuron}
 \alias{metsulfuron}
-\title{Lemna data published by Schmitt (2013)}
+\title{Lemna model fitted to \emph{metsulfuron} effect data}
 \format{
-An object of class \code{LemnaSchmittScenario} of length 1.
+An object of class \code{LemnaSchmitt} of length 1.
 }
 \usage{
 metsulfuron
@@ -16,7 +16,11 @@ toxicokinetic-toxicodynamic (TK/TD) and growth model for the aquatic
 macrophytes Lemna spp. as published by Schmitt \emph{et al.} (2013).
 The growth model was parameterised by Schmitt et al. based on these
 data while toxicokinetic and toxicodynamic parameters were determined by
-calibrating the model using substance specific effect data of metsulfuron-methyl.
+fitting the model using substance specific effect data of the
+herbicide \emph{metsulfuron-methyl}.
+}
+\details{
+The scenario is based on the \link{Lemna_Schmitt} model.
 }
 \references{
 Schmitt W., Bruns E., Dollinger M., and Sowig P., 2013: \emph{Mechanistic TK/TD-model
@@ -24,6 +28,6 @@ simulating the effect of growth inhibitors on Lemna populations}. Ecol Model 255
 pp. 1-10. \doi{10.1016/j.ecolmodel.2013.01.017}
 }
 \seealso{
-\link{Lemna-models}
+\link{Lemna-models}, \link{schmitt2013}
 }
 \keyword{datasets}

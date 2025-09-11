@@ -4,11 +4,17 @@
 \alias{plot}
 \alias{plot.cvasi_drc}
 \alias{plot.cvasi_simulate}
+\alias{plot.lik_profile}
+\alias{plot_lik_profile}
 \title{S3 plotting functions}
 \usage{
 \method{plot}{cvasi_drc}(x, y, scale_x = c("auto", "log10", "none"), ...)
 
 \method{plot}{cvasi_simulate}(x, y, ...)
+
+\method{plot}{lik_profile}(x, y, ...)
+
+plot_lik_profile(x)
 }
 \arguments{
 \item{x}{object to plot}
@@ -21,7 +27,7 @@ a log10-scaled axis, \code{none} for no scaling, and \code{auto} for automatic s
 \item{...}{unused parameters}
 }
 \value{
-\emph{ggplot2} plot object
+(\emph{ggplot2}) plot object
 }
 \description{
 These functions overload \code{\link[base:plot]{base::plot()}} to provide simple plotting
@@ -32,5 +38,12 @@ routines to display various time-series and scenario objects.
 \item \code{plot(cvasi_drc)}: Plot dose response curves
 
 \item \code{plot(cvasi_simulate)}: Plot return value of \code{\link[=simulate]{simulate()}}
+
+\item \code{plot(lik_profile)}: Plot likelihood profiles.
+
+}}
+\section{Functions}{
+\itemize{
+\item \code{plot_lik_profile()}: Alias of \code{plot.lik_profile()} for backwards-compatibility.
 
 }}

@@ -68,7 +68,7 @@ setClass("AlgaeSimpleScenario", contains = "AlgaeSimple")
 ## Constructor
 ########################
 
-#' Algae model with exponential growth and forcings (I, T)
+#' Algae model, *SAM-X* (Weber et al. 2012)
 #'
 #' The model is a mechanistic combined toxicokinetic-toxicodynamic (TK/TD) and
 #' growth model for algae. The model simulates the development of algal biomass
@@ -118,14 +118,20 @@ setClass("AlgaeSimpleScenario", contains = "AlgaeSimple")
 #'   - `b`, slope of concentration effect curve at EC_50 (-)
 #'
 #' @section Forcings:
-#' The *Algae* model requires two environmental properties as time-series input:
+#' The Weber model requires two environmental properties as time-series input:
+#'  - `T_act`, temperature (°C), and
+#'  - `I`, irradiance (uE/m²/s).
 #'
-#'  - Irradiance (`I`, uE/m²/s), and
-#'  - Temperature (`T_act`, deg C).
+#' The following constant default values are used for these properties:
+#' - `T_act` = 23 °C
+#' - `I` = 100 uE/m²/s
 #'
-#' Forcings time-series are represented by `data.frame` objects
-#' consisting of two columns. The first column for time and the second for the
-#' environmental factor in question. See [scenarios] for more details.
+#' Forcings time-series are represented by `data.frame` objects consisting of two
+#' columns. The first for time and the second for the environmental factor in question.
+#'
+#' Entries of the `data.frame` need to be ordered chronologically. A time-series
+#' can consist of only a single row; in this case it will represent constant
+#' environmental conditions. See [scenarios] for more details.
 #'
 #' @section Simulation output:
 #' Simulation results will contain the state variables Biomass (`A`), mass of
@@ -201,7 +207,7 @@ setClass("AlgaeSimpleScenario", contains = "AlgaeSimple")
 #' @seealso [Scenarios], [Transferable]
 #' @family algae models
 #' @export
-#' @aliases AlgaeWeber-class AlgaeWeberScenario-class
+#' @aliases SAM-X AlgaeWeber-class AlgaeWeberScenario-class
 Algae_Weber <- function() {
   new("AlgaeWeber",
       name = "Algae_Weber",
@@ -217,20 +223,26 @@ Algae_Weber <- function() {
       param.bounds = list(mu_max=c(0, 4),  EC_50=c(0, 1e6), b=c(0.1, 20)),
       endpoints = c("A", "r"),
       forcings.req=c("T_act", "I"),
+      forcings=list("T_act"=data.frame(time=0, temp=23),
+                    "I"=data.frame(time=0, irr=100)),
       control.req = TRUE,
       init = c(A = 1, Q = 0.01, P = 0.18),
       transfer.interval = -1,
       transfer.biomass = 1,
       transfer.comp.biomass = "A",
       transfer.comp.scaled = "Q"
-  )
+  ) %>% set_noexposure()
 }
 
-#' Algae model with exponential growth, forcings (P, I) and scaled damage
+#' @export
+#' @describeIn Algae_Weber Alias using original model name.
+SamX <- Algae_Weber
+
+#' Algae model variant (Weber et al. 2012) with scaled damage
 #'
-#'The model is a mechanistic combined toxicokinetic-toxicodynamic (TK/TD) and
-#'growth model for algae. The model simulates the development of algal biomass
-#'under laboratory and environmental conditions. The growth of the algae
+#' The model is a mechanistic combined toxicokinetic-toxicodynamic (TK/TD) and
+#' growth model for algae. The model simulates the development of algal biomass
+#' under laboratory and environmental conditions. The growth of the algae
 #' population is simulated on the basis of growth rates, which are dependent on
 #' environmental conditions (radiation, temperature and phosphorus).
 #' The model is a variant of the [Algae_Weber()] model (Weber 2012) as cited
@@ -269,13 +281,20 @@ Algae_Weber <- function() {
 #'   - `kD`, dominant rate constant (d-1)
 #'
 #' @section Forcings:
-#' Besides exposure events (Cw), the *Algae* model requires two environmental
-#' properties as time-series input: Irradiance (`I`, uE/m²/s) and
-#' temperature (`T_act`, deg C).
-#' Forcings time-series are represented by `data.frame` objects
-#' consisting of two columns. The first for time and the second for the
-#' environmental factor in question. The input format for all forcings is a
-#' list of the data frames.
+#' The Weber model variant requires two environmental properties as time-series input:
+#'  - `T_act`, temperature (°C), and
+#'  - `I`, irradiance (uE/m²/s).
+#'
+#' The following constant default values are used for these properties:
+#' - `T_act` = 23 °C
+#' - `I` = 100 uE/m²/s
+#'
+#' Forcings time-series are represented by `data.frame` objects consisting of two
+#' columns. The first for time and the second for the environmental factor in question.
+#'
+#' Entries of the `data.frame` need to be ordered chronologically. A time-series
+#' can consist of only a single row; in this case it will represent constant
+#' environmental conditions. See [scenarios] for more details.
 #'
 #' @section Simulation output:
 #' Simulation results will contain the state variables Biomass (`A`), mass of
@@ -357,16 +376,18 @@ Algae_TKTD <- function() {
       param.bounds = list(mu_max=c(0, 4),  EC_50=c(0, 1e6), b=c(0.1, 20), kD=c(0, 10)),
       endpoints = c("A", "r"),
       forcings.req=c("T_act", "I"),
+      forcings=list("T_act"=data.frame(time=0, temp=23),
+                    "I"=data.frame(time=0, irr=100)),
       control.req = TRUE,
       init = c(A = 1, Q = 0.01, P = 0.18, Dw = 0),
       transfer.interval = -1,
       transfer.biomass = 1,
       transfer.comp.biomass = "A",
       transfer.comp.scaled = "Q"
-  )
+  ) %>% set_noexposure()
 }
 
-#' Algae model with exponential growth but without additional forcings
+#' Simple algae model without environment (Rendal et al. 2023)
 #'
 #' The model is a mechanistic combined toxicokinetic-toxicodynamic (TK/TD) and
 #' growth model for algae. It follows the concept of a simplified algae model
@@ -376,7 +397,8 @@ Algae_TKTD <- function() {
 #' environmental conditions which are usually optimal in laboratory effect studies.
 #' The toxicodynamic sub-model describes the effects of growth-inhibiting
 #' substances through a corresponding reduction in the photosynthesis rate on the
-#' basis of either external or internal concentrations (depending on user choice of 'scaled' parameter setting).
+#' basis of either external or internal concentrations (depending on user choice
+#' of *scaled* parameter setting).
 #'
 #' @section State variables:
 #' The model has two state variables:
@@ -445,12 +467,16 @@ Algae_TKTD <- function() {
 #'    Maximum step length in time suitable for most simulations.
 #'
 #' @references
+#' Rendal C, Witt J, Preuss TG, Ashauer R, 2023: A Framework for Algae Modeling
+#' in Regulatory Risk Assessment. Environ. Toxicol. Chem. 42(8), pp. 1823-1838.
+#' \doi{10.1002/etc.5649}
+#'
 #' Weber D, Schaefer D, Dorgerloh M, Bruns E, Goerlitz G, Hammel K, Preuss TG
-#' and Ratte HT, 2012. Combination of a higher-tier flow-through system and
+#' and Ratte HT, 2012: Combination of a higher-tier flow-through system and
 #' population modeling to assess the effects of time-variable exposure of
 #' isoproturon on the green algae Desmodesmus subspictatus and
-#' Pseudokirchneriella subcapitata. Environmental Toxicology and
-#' Chemistry, 31(4), 899-908. \doi{10.1002/etc.1765}
+#' Pseudokirchneriella subcapitata. Environ. Toxicol. Chem. 31(4), pp. 899-908.
+#' \doi{10.1002/etc.1765}
 #'
 #' @return an S4 object of type [AlgaeSimple-class]
 #' @seealso [Scenarios], [Transferable]
@@ -473,9 +499,8 @@ Algae_Simple <- function() {
       transfer.interval = -1,
       transfer.biomass = 1,
       transfer.comp.biomass = "A"
-  )
+  ) %>% set_noexposure()
 }
-
 
 ########################
 ## Simulation

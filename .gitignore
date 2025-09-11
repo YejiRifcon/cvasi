@@ -11,3 +11,5 @@ inst/doc
 /doc/*.Rmd
 /doc/*.html
 *.html
+# temporary files
+/tests/testthat/Rplots.pdf

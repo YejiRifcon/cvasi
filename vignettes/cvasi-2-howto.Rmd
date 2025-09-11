@@ -288,25 +288,22 @@ Option 1: direct calibration with one scenario and one effect dataset
 
 ```{r warning=FALSE}
 library(dplyr)
-# No exposure in control scenario
-exposure <- data.frame(time=0:14, conc=0)
-
 # set k_phot_fix, k_resp and Emax to the defaults recommended in Klein et al. (2022)
 # for Tier 2C studies. Set initial biomass to 12.0 (original data is in fronds
 # rather than biomass, but for sake of simplicity, no conversion was performed).
 control <- metsulfuron %>% 
   set_param(c(k_phot_fix=TRUE, k_resp=0, Emax=1)) %>% 
   set_init(c(BM=12)) %>%
-  set_exposure(exposure)
+  set_noexposure() %>%
+  set_bounds(list(k_phot_max=c(0, 0.5)))
 # `metsulfuron` is an example scenario based on Schmitt et al. (2013) and therefore
 # uses the historical, superseded nomenclature by Schmitt et al. We recommend using
 # the newer SETAC Lemna model by Klein et al. (2022) for current applications,
 # see `Lemna_SETAC()` for details.
 
 # Get control data from Schmitt et al. (2013)
-obs_control <- Schmitt2013 %>%
-  filter(ID == "T0") %>%
-  select(t, BM=obs)
+obs_control <- schmitt2013 %>%
+  filter(trial == "T0")
 
 # Fit parameter `k_phot_max` to observed data: `k_phot_max` is a physiological
 # parameter which is typically fitted to the control data
@@ -315,25 +312,29 @@ fit1 <- calibrate(
   par = c(k_phot_max = 1),
   data = obs_control,
   output = "BM",
-  method="Brent", # Brent is recommended for one-dimensional optimization
-  lower=0,        # lower parameter boundary
-  upper=0.5       # upper parameter boundary
+  method="Brent" # Brent is recommended for one-dimensional optimization
 )
 fit1$par
 
 # Update the scenario with fitted parameter and simulate it
 fitted_growth <- control %>% 
-  set_param(fit1$par)
+  set_param(fit1$par) %>%
+  set_bounds(list(
+    EC50=c(0, 1000),
+    b=c(0.1, 10), 
+    P_up=c(0, 0.1)
+  ))
 sim_mean <- fitted_growth %>%
   simulate() %>%
   mutate(trial="control")
 
 # Exposure and observations in long format for plotting
-treatments <- exposure %>%
+treatments <- obs_control %>%
+  select(time, conc) %>%
   mutate(trial="control")
 obs_mean <- obs_control %>%
-  mutate(trial="control") %>%
-  select(time=t, data=BM, trial)
+  select(time, BM=obs) %>%
+  mutate(trial="control")
 
 # Plot results
 plot_sd(
@@ -348,25 +349,13 @@ Option 2: Create a list of *calibration sets*  and then fit TK/TD model paramete
   on all datasets and exposure levels at the same time:
 
 ```{r warning=FALSE}
-# get all the trials and exposure series from Schmitt et al. (2013) and create
-# a list of calibration sets
-Schmitt2013 %>%
-  group_by(ID) %>%
-  group_map(function(data, key) {
-    exp <- data %>% select(t, conc)
-    obs <- data %>% select(t, BM=obs)
-    sc <- fitted_growth %>% set_exposure(exp) 
-    caliset(sc, obs)
-  }) -> cs
-
-# Fit parameters on results of all trials at once
+# Use all trials and exposure series from Schmitt et al. (2013) as input for fitting
 fit2 <- calibrate(
-  cs,
+  fitted_growth,
+  data=schmitt2013,
   par=c(EC50=0.3, b=4.16, P_up=0.005),
   output="BM",
   method="L-BFGS-B",
-  lower=c(0, 0.1, 0),
-  upper=c(1000, 10, 0.1),
   verbose=FALSE
 )
 fit2$par
@@ -375,14 +364,13 @@ fit2$par
 fitted_tktd <- fitted_growth %>%
   set_param(fit2$par)
 
-treatments <- Schmitt2013 %>% select(time=t, conc, trial=ID)
+treatments <- schmitt2013 %>% select(time, conc, trial)
 rs_mean <- fitted_tktd %>%
   batch(treatments) %>%
   simulate()
 
 # Observations in long format for plotting
-obs_mean <- Schmitt2013 %>%
-  select(time=t, data=obs, trial=ID)
+obs_mean <- schmitt2013 %>% select(time, obs, trial)
 
 # Plot results
 plot_sd(
@@ -396,13 +384,15 @@ plot_sd(
 The resulting scenario with fitted parameters shows a very good fit with
 the observed effects from experiments.
 
+## Obtaining confidence intervals for parameters
+
 After model parameters have been calibrated during model fitting against 
 observational data, the parameter estimates obtained can be 
 further evaluated by assessing the 95% confidence intervals for each parameter 
 through likelihood profiling. 
 
 First, the profiling is conducted using the `lik_profile()` function. Then, the 
-profiles can be visualized using `plot_lik_profile()`.
+profiles can be visualized using `plot()`.
 
 ```{r}
 # using the calibration set and calibrated parameters from the previous Lemna 
@@ -410,24 +400,68 @@ profiles can be visualized using `plot_lik_profile()`.
 # We set parameter boundaries to constrain the likelihood profiling within these 
 # boundaries (this is optional)
 
-# conduct profiling
-res <- lik_profile(x = cs, # the calibration set
-                   par = fit2$par, # the parameter values after calibration
+# Calibrate a model to a list of calibration sets
+fit <- calibrate(
+  fitted_growth,
+  data=schmitt2013,
+  par=c(EC50=0.3, b=4.16, P_up=0.005),
+  output="BM",
+  method="L-BFGS-B",
+  verbose=FALSE
+)
+
+# Conduct profiling
+res <- lik_profile(x = fitted_growth,
+                   data = schmitt2013,
+                   par = fit$par, # the parameter values after calibration
                    output = "BM", # the observational output against which to 
                                   # compare the model fit
                    bounds = list(EC50_int = list(0.1, 4), 
                                  b = list(1, 5),
                                  P = list(0.0001, 0.2)))
-# visualise profiling results
-plot_lik_profile(res)
+# Visualise profiling results
+plot(res)
 
-# access 95% confidence intervals of profiled parameters
+# Access 95% confidence intervals of profiled parameters
 res$EC50$confidence_interval
 res$b$confidence_interval
 
 ```
 
-Finally, relations between estimates of the calibrated parameters can be 
+Optionally, we can adapt caliset weights and tags, for example, a study 
+was done by 2 labs (A and B), where the data of lab 2 should 
+be considered to have more weight. In this case, the `individual` argument
+needs to be set to TRUE.
+
+```{r}
+# Create calisets
+cs <- td2cs(fitted_growth, tox_data(schmitt2013))
+# Define tags and weights
+lab_tags <- c("A", "B", "B", "A", "B", "B", "B")
+lab_weights <- c(1, 1.5, 1.5, 1, 1.5, 1.5, 1.5)
+
+for(i in 1:length(cs)){
+  cs[[i]]@tag <- lab_tags[i]
+  cs[[i]]@weight <- lab_weights[i]
+}
+
+res_2 <- lik_profile(x = cs, # the calibration set
+                   par = fit$par, # the parameter values after calibration
+                   output = "BM", # the observational output against which to 
+                   # compare the model fit
+                   bounds = list(EC50_int = list(0.1, 4), 
+                                 b = list(1, 5),
+                                 P = list(0.0001, 0.2)),
+                   individual = TRUE)
+                   
+plot(res_2)
+
+
+```
+
+## Assessing parameter correlations and identifiability
+
+Relations between estimates of the calibrated parameters can be 
 visualized using a parameter space explorer. This supports identifying potential
 parameter correlations and identifiability issues.
 
@@ -437,7 +471,8 @@ the fit (likelihood) of each of these parameter sets by comparing the model with
 the original parameter set against the model with the new, randomly draw set.
  
 First, the parameter space exploration is conducted using the `explore_space()` 
-function. Then, the space can be visualized using `plot_param_space()`.
+function. Then, the space can be visualized using `plot()`.
+
 
 ```{r, eval=FALSE}
 # Call the help page for more information about the parameter space explorer
@@ -447,15 +482,32 @@ function. Then, the space can be visualized using `plot_param_space()`.
 
 ```{r}
 
-# conduct space exploration
+# Calibrate a model to a list of calibration sets
+cs <- td2cs(fitted_growth, tox_data(schmitt2013))
+fit <- calibrate(
+  cs,
+  par=c(EC50=0.3, b=4.16, P_up=0.005),
+  output="BM",
+  method="L-BFGS-B",
+  verbose=FALSE
+)
+# conduct profiling
+res <- lik_profile(x = cs, # the calibration set
+                   par = fit$par, # the parameter values after calibration
+                   output = "BM", # the observational output against which to 
+                                  # compare the model fit
+                   bounds = list(EC50_int = list(0.1, 4), 
+                                 b = list(1, 5),
+                                 P = list(0.0001, 0.2)))
+# Conduct space exploration
 res_space <- explore_space(
   x = cs,
   par = fit2$par,
   res = res, # output of the likelihood profiling function
   output = "BM")
 
-# visualize the parameter space
-plot_param_space(res_space)
+# Visualize the parameter space
+plot(res_space)
 
 ```
 
@@ -863,9 +915,8 @@ Lemna_Schmitt() %>%               # the Lemna model by Schmitt et al. (2013)
 ```{r out.width = "100%"}
 ## simulate with model, under a range of different exposure scenarios
 # create several exposure scenarios
-exp_scen <- data.frame(time = Schmitt2013$t,
-                       conc = Schmitt2013$conc,
-                       trial = Schmitt2013$ID)
+exp_scen <- schmitt2013 %>% select(time, conc, trial)
+
 # simulate for all these scenarios
 results <- metsulfuron %>%
   batch(exp_scen) %>%

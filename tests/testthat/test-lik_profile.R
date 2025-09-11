@@ -8,6 +8,33 @@ test_that("log-likelihood gives expected error", {
                                              obs = c(12, 38, 92, 176, 176, 627, 1283, 2640)),
                            output = "BM")))
 
+  # error for data_type
+  expect_error(suppressMessages(lik_profile(x = Lemna_Schmitt(),
+                                            par = c(k_phot_max = 5.6,
+                                                    k_resp = 1.9),
+                                            data = data.frame(t = c(0, 3, 5, 7, 7.01, 10, 12, 14),
+                                                              obs = c(12, 38, 92, 176, 176, 627, 1283, 2640)),
+                                            output = "BM",
+                                            data_type = "foo")))
+
+  # error for data_type
+  expect_error(suppressMessages(lik_profile(x = Lemna_Schmitt(),
+                                            par = c(k_phot_max = 5.6,
+                                                    k_resp = 1.9),
+                                            data = data.frame(t = c(0, 3, 5, 7, 7.01, 10, 12, 14),
+                                                              obs = c(12, 38, 92, 176.04, 176, 627, 1283, 2640)),
+                                            output = "BM",
+                                            data_type = "count")))
+
+  # error for data_type
+  expect_error(suppressMessages(lik_profile(x = Lemna_Schmitt(),
+                                            par = c(k_phot_max = 5.6,
+                                                    k_resp = 1.9),
+                                            data = data.frame(t = c(0, 3, 5, 7, 7.01, 10, 12, 14),
+                                                              obs = c(12, 38, 92, "foo", 176, 627, 1283, 2640)),
+                                            output = "BM",
+                                            data_type = "count")))
+
   # error for model
   # # error because of misspecified model (not calibration set nor scenario)
   # expect_error(lik_profile(x = "model",
@@ -60,10 +87,9 @@ test_that("log-likelihood gives expected error", {
 test_that("likelihood profiling works", {
 
   # Inputs for likelihood profiling
-  obs <- Schmitt2013 %>%
-    dplyr::filter(ID == "T0") %>%
-    dplyr::select(t, obs)
-  colnames(obs) = c("t", "BM")
+  obs <- schmitt2013 %>%
+    dplyr::filter(trial == "T0") %>%
+    dplyr::select(time, BM=obs)
   params <- c(k_phot_max = 3.979200,
               k_resp =  7.700779e-08)
   sc <- metsulfuron %>%

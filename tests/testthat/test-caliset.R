@@ -1,4 +1,4 @@
-test_that("invalid scenario argument", {
+test_that("arg scenario=invalid", {
   sc <- minnow_it
 
   expect_error(caliset(), "scenario. is missing")
@@ -8,7 +8,7 @@ test_that("invalid scenario argument", {
   expect_error(caliset(scenario=1), "must be a scenario")
 })
 
-test_that("invalid data argument", {
+test_that("arg data=invalid", {
   sc <- minnow_it
 
   expect_error(caliset(sc), "is missing")
@@ -29,7 +29,16 @@ test_that("invalid data argument", {
   expect_error(caliset(sc, data.frame(t=1, o=Inf)), "invalid value")
 })
 
-test_that("invalid weight argument", {
+test_that("arg data=observed include NA", {
+  sc <- minnow_it
+  data <- data.frame(times=0:3, obs=c(0, NA_real_, 1, 2))
+
+  cs <- suppressMessages(caliset(sc, data=data))
+  expect_equal(cs@scenario, sc)
+  expect_equal(cs@data, data[!is.na(data$obs), ])
+})
+
+test_that("arg weight=invalid", {
   sc <- minnow_it
   df1 <- data.frame(t=1, o=2)
   dfn <- data.frame(t=1:8, o=2)

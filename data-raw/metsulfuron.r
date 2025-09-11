@@ -99,18 +99,4 @@ Lemna_Schmitt() %>%
 metsulfuron@exposure@file <- "step function"
 usethis::use_data(metsulfuron, overwrite=TRUE)
 
-## testing
-#lemna %>% simulate(transfer.interval=1000, method="lsoda")
-
-#lemna %>% set_exposure(data.frame(t=0:7,c=c(1))) -> lemna2
-#lemna2 %>% simulate(method="lsoda", hmax=.1)
-
-#seq <- LemnaSequence(n=2)
-#scenario(seq, 1) <- lemna %>% set_exposure(data.frame(t=0:7, c=1))
-#scenario(seq, 2) <- lemna %>% set_exposure(data.frame(t=7:14,c=0))
-#simulate(seq, method="lsoda", hmax=NULL)
-
-
-#lemna %>% set_exposure(data.frame(t=0:14,c=0)) %>% simulate()
-
 rm(param_study, forc_temp, forc_rad, exposure, init, metsulfuron)

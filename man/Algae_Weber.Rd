@@ -2,11 +2,15 @@
 % Please edit documentation in R/model-algae.R
 \name{Algae_Weber}
 \alias{Algae_Weber}
+\alias{SAM-X}
 \alias{AlgaeWeber-class}
 \alias{AlgaeWeberScenario-class}
-\title{Algae model with exponential growth and forcings (I, T)}
+\alias{SamX}
+\title{Algae model, \emph{SAM-X} (Weber et al. 2012)}
 \usage{
 Algae_Weber()
+
+SamX()
 }
 \value{
 an S4 object of type \linkS4class{AlgaeWeber}
@@ -29,6 +33,11 @@ Therefore, state-variable \code{C} and its differential equation was removed and
 model output \code{C} is identical to the exposure time-series. The implementation
 of Weber et al. (2012) was followed where units differ from EFSA (2018).
 }
+\section{Functions}{
+\itemize{
+\item \code{SamX()}: Alias using original model name.
+
+}}
 \section{State variables}{
 
 The model has three state variables:
@@ -73,15 +82,24 @@ Therefore, state variable \code{C} and accompanying parameters are not present h
 
 \section{Forcings}{
 
-The \emph{Algae} model requires two environmental properties as time-series input:
+The Weber model requires two environmental properties as time-series input:
 \itemize{
-\item Irradiance (\code{I}, uE/m²/s), and
-\item Temperature (\code{T_act}, deg C).
+\item \code{T_act}, temperature (°C), and
+\item \code{I}, irradiance (uE/m²/s).
 }
 
-Forcings time-series are represented by \code{data.frame} objects
-consisting of two columns. The first column for time and the second for the
-environmental factor in question. See \link{scenarios} for more details.
+The following constant default values are used for these properties:
+\itemize{
+\item \code{T_act} = 23 °C
+\item \code{I} = 100 uE/m²/s
+}
+
+Forcings time-series are represented by \code{data.frame} objects consisting of two
+columns. The first for time and the second for the environmental factor in question.
+
+Entries of the \code{data.frame} need to be ordered chronologically. A time-series
+can consist of only a single row; in this case it will represent constant
+environmental conditions. See \link{scenarios} for more details.
 }
 
 \section{Simulation output}{

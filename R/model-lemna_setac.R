@@ -15,10 +15,10 @@ setClass("LemnaSetacScenario", contains="LemnaSetac")
 ## Constructor
 ########################
 
-#' Lemna model (Klein et al. 2021)
+#' Lemna model v1.3 (Klein et al. 2021)
 #'
 #' The model was described and published by the SETAC Europe Interest Group
-#' Effect Modeling (Klein et al. 2022). It is based on the *Lemna* model
+#' Effect Modeling (Klein et al. 2021). It is based on the *Lemna* model
 #' by Schmitt (2013). The model is a mechanistic combined
 #' toxicokinetic-toxicodynamic (TK/TD) and growth model for the aquatic
 #' macrophytes *Lemna spp.*. The model simulates the development of Lemna biomass
@@ -30,16 +30,21 @@ setClass("LemnaSetacScenario", contains="LemnaSetac")
 #'
 #' @section State variables:
 #' The model has two state variables:
-#' - `BM`, Biomass (g dw m-2)
-#' - `M_int`, Mass of toxicant in plant population (mass per m2, e.g. ug m-2)
+#' - `BM`, Biomass (g dw)
+#' - `M_int`, Mass of toxicant in plant population (ng)
+#'
+#' The  units of the state variables `BM` and `M_int` are to be interpreted
+#' as *per vessel* in laboratory tests, and as *per square meter* for field populations.
+#' The same interpretation applies to all parameters relating biomass and toxicant mass to
+#' other entities.
 #'
 #' @section Model parameters:
 #' - Growth model
 #'   - `k_photo_fixed`, Model switch for unlimited growth conditions (TRUE/FALSE)
 #'   - `k_photo_max`, Maximum photosynthesis rate (d-1)
 #'   - `k_loss`, Reference loss rate (d-1)
-#'   - `BM_threshold`, Lower biomass abundance threshold,  (g dw m-2)
-#'   - `BM_min`, Reservoir for biomass recovery,  (g dw m-2)
+#'   - `BM_threshold`, Lower biomass abundance threshold,  (g dw)
+#'   - `BM_min`, Reservoir for biomass recovery,  (g dw)
 #'
 #' - Temperature response of photosynthesis
 #'   - `T_opt`, Optimum growth temperature (°C)
@@ -59,7 +64,7 @@ setClass("LemnaSetacScenario", contains="LemnaSetac")
 #'   - `P_50`, Half-saturation constant of Phosphorus (mg P L-1)
 #'
 #' - Density dependence of photosynthesis
-#'   - `BM_L`, Carrying capacity (g dw m-2)
+#'   - `BM_L`, Carrying capacity (g dw)
 #'
 #' - Concentration response (Toxicodynamics)
 #'   - `EC50_int`, Internal concentration resulting in 50% effect (ug L-1)
@@ -76,12 +81,20 @@ setClass("LemnaSetacScenario", contains="LemnaSetac")
 #'   - `k_met`, Metabolisation rate (d-1)
 #'
 #' @section Forcings:
+#' External concentrations, alias *exposure*,  have to be provided as *ug L-1*.
+#'
 #' Besides exposure, the model requires four environmental properties as
-#' time-series input:
-#' - `tmp`, temperature (°C)
+#' input:
+#' - `tmp`, ambient temperature (°C)
 #' - `irr`, irradiance (kJ m-2 d-1)
 #' - `P`, Phosphorus concentration (mg P L-1)
 #' - `N`, Nitrogen concentration (mg N L-1)
+#'
+#' The following constant default values are used for these properties:
+#' - `tmp` = 12 °C
+#' - `irr` = 15,000 kJ m-2 d-1
+#' - `P` = 0.3 mg L-1
+#' - `N` = 0.6 mg L-1
 #'
 #' Forcings time-series are represented by `data.frame` objects consisting of two
 #' columns. The first for time and the second for the environmental factor in question.
@@ -97,10 +110,10 @@ setClass("LemnaSetacScenario", contains="LemnaSetac")
 #' with biomass transfers.
 #'
 #' @section Simulation output:
-#' For reasons of convenience, the return value contains by default two additional
-#' variables derived from simulation results: the internal concentration `C_int`
-#' as well as the number of fronds `FrondNo`. These can be disabled by setting
-#' the argument `nout = 0`.
+#' For reasons of convenience, the return value of [simulate()] contains by
+#' default two additional variables derived from simulation results:
+#' the internal concentration `C_int` as well as the number of fronds `FrondNo`.
+#' These can be disabled by setting the argument `nout = 0`.
 #'
 #' The available output levels are as follows:
 #' - `nout >= 1`: `C_int`, internal concentration (mass per volume)
@@ -157,7 +170,7 @@ setClass("LemnaSetacScenario", contains="LemnaSetac")
 #' Schmitt W., Hommen U., 2021: *Refined description of the Lemna TKTD growth model
 #' based on Schmitt et al. (2013) - equation system and default parameters*.
 #' Report of the working group *Lemna* of the SETAC Europe Interest Group Effect
-#' Modeling. Version 1.1, uploaded on 09 May 2022.
+#' Modeling. Version 1.3, uploaded in July 2025.
 #' https://www.setac.org/group/effect-modeling.html
 #'
 #'
@@ -225,7 +238,7 @@ Lemna_SETAC <- function() {
       init=c(BM=0.0012, M_int=0),
       transfer.comp.biomass="BM",
       transfer.comp.scaled="M_int"
-  )
+  ) %>% set_noexposure()
 }
 
 

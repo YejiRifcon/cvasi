@@ -130,7 +130,7 @@ GUTS_RED_IT <- function(param, init) {
       endpoints = c("L"),
       init = c(D=0, H=0),
       control.req=FALSE
-  ) -> o
+  ) %>% set_noexposure() -> o
   if(!missing(param))
     o <- set_param(o, param)
   if(!missing(init))
@@ -171,7 +171,7 @@ GUTS_RED_SD <- function(param, init) {
       endpoints = c("L"),
       init = c(D=0, H=0),
       control.req=FALSE
-  ) -> o
+  ) %>% set_noexposure() -> o
   if(!missing(param))
     o <- set_param(o, param)
   if(!missing(init))

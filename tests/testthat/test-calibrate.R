@@ -8,16 +8,16 @@ test_that("fit to simple dataset", {
   ## set up a scenario to create perfect fit data
   rs <- simulate(minnow_it)
   # modify scenario by setting parameter `kd` to quasi-random value
-  tofit <- minnow_it %>% set_param(c(kd=0.01))
+  tofit <- minnow_it %>%
+    set_param(c(kd=0.01)) %>%
+    set_bounds(list(kd=c(0.001, 10)))
 
   # calibrate modified scenario on synthetic data
   calib <- calibrate(tofit,
                      par=c(kd=0.1),
-                     data=rs[,-3],
+                     data=rs[, c(1, 2)],
                      output="D",
                      method="Brent",
-                     lower=0.001,
-                     upper=10,
                      verbose=FALSE)
 
   expect_equal(calib$par[["kd"]],
@@ -27,8 +27,9 @@ test_that("fit to simple dataset", {
   # expect a warning with Nelder-Mead but result should be good nonetheless
   expect_warning(calibrate(tofit,
                            par=c(kd=0.1),
-                           data=rs[,-3],
+                           data=rs[, c(1, 2)],
                            output="D",
+                           method="Nelder-Mead",
                            control=list(reltol=1e-12),
                            verbose=FALSE) -> calib)
   expect_equal(calib$par[["kd"]],
@@ -47,16 +48,16 @@ test_that("fit to dataset with replicates", {
     simulate()
 
   # modify scenario by setting parameter `kd` to quasi-random value
-  tofit <- minnow_it %>% set_param(c(kd=0.1))
+  tofit <- minnow_it %>%
+    set_param(c(kd=0.1)) %>%
+    set_bounds(list(kd=c(0.001, 10)))
 
   # calibrate modified scenario on synthetic data
   calib <- calibrate(tofit,
                      par=c(kd=0.1),
-                     data=rs[,-3],
+                     data=rs[, c(1, 2)],
                      output="D",
                      method="Brent",
-                     lower=0.001,
-                     upper=10,
                      verbose=FALSE)
 
   expect_equal(calib$par[["kd"]],
@@ -92,16 +93,15 @@ test_that("fit to complex dataset", {
   }
 
   # modify scenario by setting parameter `kd` to quasi-random value
-  tofit <- minnow_it %>% set_param(c(kd=0.1))
+  tofit <- minnow_it %>%
+    set_param(c(kd=0.1)) %>%
+    set_bounds(list(kd=c(0.001, 10)))
   # fit to data
   calibrate(tofit,
             par=c(kd=0.1),
-            data=df,
+            data=df[, c("time", "D", "trial")],
             output="D",
-            by="trial",
             method="Brent",
-            lower=0.001,
-            upper=10,
             verbose=FALSE) -> calib
   # we have to use lower precision for comparison purposes, but result is
   # derived from noisy data, so this is OK
@@ -132,8 +132,6 @@ test_that("fit to complex dataset", {
   #          by="trial",
   #          output="D",
   #          method="L-BFGS-B",
-  #          lower=c(0,0.001),
-  #          upper=c(10,10),
   #          verbose=FALSE) -> calib
   #expect_equal(calib$par[["kd"]],
   #             minnow_it@param$kd,
@@ -149,7 +147,9 @@ test_that("fit to calibration set", {
     dplyr::select(time, D) -> rs.ideal
 
   # modify scenario by setting parameter `kd` to quasi-random value
-  tofit <- minnow_it %>% set_param(c(kd=0.1))
+  tofit <- minnow_it %>%
+    set_param(c(kd=0.1)) %>%
+    set_bounds(list(kd=c(0.001, 10)))
   # create a single calibration set
   cs <- caliset(tofit, rs.ideal)
 
@@ -157,8 +157,6 @@ test_that("fit to calibration set", {
             par=c(kd=0.1),
             output="D",
             method="Brent",
-            lower=0.001,
-            upper=10,
             verbose=FALSE) -> calib
 
   expect_equal(calib$par[["kd"]],
@@ -187,8 +185,6 @@ test_that("fit to calibration set", {
             par=c(kd=0.1),
             output="D",
             method="Brent",
-            lower=0.001,
-            upper=10,
             verbose=FALSE) -> calib
 
   expect_equal(calib$par[["kd"]],
@@ -206,7 +202,7 @@ test_that("failed simulations during fitting", {
   suppressWarnings( # suppress any additional warnings
     expect_warning(
       calibrate(fail, par=c("baz"=0), data=data.frame("t"=0:2, "a"=0), output="a", verbose=FALSE),
-      "dummy scenario failed"
+      "simulations failed"
     )
   )
 
@@ -216,38 +212,37 @@ test_that("failed simulations during fitting", {
     df <- data.frame(t=0:2, A=1)
     attr(df, "desolve_diagn") <- list(istate=c(-1, 100), rstate=1) # magic value from deSolve, cf. [num_info()]
     df
-  })
-  suppressWarnings(
-    expect_warning(rs <- calibrate(instable, par=c("baz"=0), data=data.frame("t"=0:2, "A"=0),
-                                   output="A", verbose=FALSE, method="Brent", lower=0, upper=1),
-                  "num_info")
-  )
+  }) %>%
+    set_bounds(list(baz=c(0, 1)))
+  expect_warning(rs <- calibrate(instable, par=c("baz"=0), data=data.frame("t"=0:2, "A"=0),
+                                 output="A", verbose=FALSE, method="Brent"))
+  expect_true(num_aborted(rs))
   expect_equal(attr(rs, "desolve_diagn"), list(istate=c(-1, 100), rstate=1))
 })
 
 test_that("fit with weights", {
+  tofit <- minnow_it %>%
+    set_bounds(list(kd=c(0.001, 10)))
   # synthetic dataset #1, should be irrelevant due to small weights
-  minnow_it %>%
+  tofit %>%
     simulate() %>%
     dplyr::select(time, D) -> rs1
   # synthetic dataset #2, the only relevant one due to large weights
-  minnow_it %>%
+  tofit %>%
     set_param(c(kd=0.5)) %>%
     simulate() %>%
     dplyr::select(time, D) -> rs2
 
   # create list containing calibration sets
   cs <- list(
-    caliset(minnow_it, rs1, weight=0.0001),
-    caliset(minnow_it, rs2, weight=1000)
+    caliset(tofit, rs1, weight=0.0001),
+    caliset(tofit, rs2, weight=1000)
   )
 
   calibrate(cs,
             par=c(kd=minnow_it@param$kd),
             output="D",
             method="Brent",
-            lower=0.001,
-            upper=10,
             verbose=FALSE) -> calib
 
   expect_equal(calib$par[["kd"]],
@@ -255,23 +250,21 @@ test_that("fit with weights", {
                tolerance=1e-5)
 
 })
-test_that("invalid inputs: scenario", {
+
+test_that("arg x=scenario invalid", {
   sc <- new("EffectScenario")
   # data not a data.frame
-  expect_error(calibrate(sc, data=1), "must be a data.frame")
+  expect_error(calibrate(sc, data=1), "must be a .data.frame.")
   # data empty
   expect_error(calibrate(sc, data=data.frame()), "is empty")
   # output not in data
   df <- data.frame(t=0:3, foo=1, bar=2)
-  expect_error(calibrate(sc, data=df, output="baz"), "not a column")
+  expect_error(calibrate(sc, data=df, output="baz"), ".par. is missing")
   # group by not a single character
-  expect_error(calibrate(sc, data=df, output="foo", by=c("t", "foo")), "length one")
-  expect_error(calibrate(sc, data=df, output="foo", by=c(1)), "must be a character")
-  # ... not in data
-  expect_error(calibrate(sc, data=df, output="foo", by="baz"), "not a column")
+  lifecycle::expect_deprecated(expect_error(calibrate(sc, data=df, output="foo", by=c("t", "foo")), "length one"))
 })
 
-test_that("invalid inputs: calisets", {
+test_that("arg x=calisets invalid", {
   sc <- new("EffectScenario") %>% set_times(0:5) %>% set_param(c(foo=1, bar=2))
   cs <- caliset(sc, data.frame(t=0:5, bar=1))
 
@@ -280,8 +273,8 @@ test_that("invalid inputs: calisets", {
   # not all elements are calisets
   expect_error(calibrate(list(cs, 1)), "only contain caliset")
   # par is non-numeric
-  expect_error(calibrate(cs, par=sc), "must be a numeric")
-  expect_error(calibrate(cs, par=c("foo"="b")), "must be a numeric")
+  expect_error(calibrate(cs, par=sc), "non-numerical elements")
+  expect_error(calibrate(cs, par=c("foo"="b")), "not determine starting value")
   # not all elements in par are named
   expect_error(calibrate(cs, par=c(1)), "must be named")
   expect_error(calibrate(cs, par=c(foo=1, 2)), "must be named")
@@ -294,25 +287,24 @@ test_that("invalid inputs: calisets", {
   expect_error(calibrate(cs, par=c(foo=0), output=c("a","b")), "output. must be of length one")
   # output not a string
   expect_error(calibrate(cs, par=c(foo=0), output=1), "output. must be a string")
-  # output var missing from datasets
-  suppressMessages(expect_error(calibrate(cs, par=c(foo=0), output="baz"), "missing from dataset"))
 })
 
 test_that("fit with error functions", {
   tol <- 1e-5
   rs <- simulate(minnow_it)
-  tofit <- minnow_it %>% set_param(c(kd=0.01))
+  tofit <- minnow_it %>%
+    set_param(c(kd=0.01)) %>%
+    set_bounds(list(kd=c(0.001, 10)))
 
   # use an alternative error function
   tofit <- tofit %>% set_init(rs[2,c("D", "H")])
   calib <- calibrate(tofit,
                      par=c(kd=0.1),
-                     data=rs[-1, -3],
+                     data=rs[-1, c(1, 2)],
                      output="D",
-                     err_fun="log_sse",
+                     err_fun="sse",
+                     log_scale=TRUE,
                      method="Brent",
-                     lower=0.001,
-                     upper=10,
                      verbose=FALSE)
   expect_equal(calib$par[["kd"]],
                minnow_it@param$kd,
@@ -320,9 +312,9 @@ test_that("fit with error functions", {
 
   # use a custom error function
   myerr <- function(obs, pred, ...) sum((log(obs) - log(pred))^2)
-  calib2 <- calibrate(tofit, par=c(kd=0.1), data=rs[-1, -3],
+  calib2 <- calibrate(tofit, par=c(kd=0.1), data=rs[-1, c(1, 2)],
                       output="D", err_fun=myerr, method="Brent",
-                      lower=0.001, upper=10, verbose=FALSE)
+                      verbose=FALSE)
   expect_equal(calib2$par[["kd"]],
                calib$par[["kd"]],
                tolerance=tol)
@@ -382,7 +374,7 @@ test_that("input check: fitted parameter", {
   moptim <- function(...) list(convergence=0, par=list(kd=0))
 
   with_mocked_bindings(
-    calibrate(sc, par=c(kd=val), data=data.frame(t=0:5, S=0), output="S", verbose=FALSE),
+    calibrate(sc, par=c(kd=val), data=data.frame(t=0:5, S=0), output="S", verbose=FALSE, method="Nelder-Mead"),
     optim=moptim
   )
   succeed()
@@ -391,7 +383,7 @@ test_that("input check: fitted parameter", {
   sc <- minnow_it
   sc@param.req <- character(0)
   with_mocked_bindings(
-    calibrate(sc, par=c(kd=val), data=data.frame(t=0:5, S=0), output="S", verbose=FALSE),
+    calibrate(sc, par=c(kd=val), data=data.frame(t=0:5, S=0), output="S", verbose=FALSE, method="Nelder-Mead"),
     optim=moptim
   )
   succeed()
@@ -399,18 +391,101 @@ test_that("input check: fitted parameter", {
   # parameter does not belong to model
   sc <- minnow_it
   expect_error(with_mocked_bindings(
-    calibrate(sc, par=c(foo=1), data=data.frame(t=0:5, S=0), output="S", verbose=FALSE),
+    calibrate(sc, par=c(foo=1), data=data.frame(t=0:5, S=0), output="S", verbose=FALSE, method="Nelder-Mead"),
     optim=moptim
   ),
   "not scenario parameters")
 })
 
+# starting values for optimization are given by user or, if nothing set by
+# user, are derived from the scenario's parameter values
+test_that("starting value from scenario", {
+  sc <- minnow_it %>% set_param(c(kd=42, hb=123))
+  data <- data.frame(time=0:5, S=1, id="foo")
+  par <- c("kd")
+  moptim <- function(par, ...) list(convergence=0, par=as.list(par))
 
+  # starting value taken from scenario's parameter list
+  rs <- with_mocked_bindings(calibrate(sc, data=data, par="kd", output="S", verbose=FALSE, method="Nelder-Mead"),
+                       optim = moptim)
+  expect_equal(names(rs$par), "kd")
+  expect_equal(rs$par$kd, 42)
+
+  # one value from parameters, one supplied as argument
+  rs <- with_mocked_bindings(calibrate(sc, data=data, par=list("kd", "hb"=1), output="S", verbose=FALSE, method="Nelder-Mead"),
+                             optim = moptim)
+  expect_equal(names(rs$par), c("kd", "hb"))
+  expect_equal(rs$par$kd, 42)
+  expect_equal(rs$par$hb, 1)
+
+  # parameter not set
+  expect_error(
+    with_mocked_bindings(calibrate(sc, data=data, par="foo", output="S", verbose=FALSE, method="Nelder-Mead"),
+                         optim = moptim),
+    "not determine starting value"
+  )
+})
+
+# calibrate() proposes a sensible method if nothing specified by user,
+# otherwise user knows best, probably
+test_that("optim method", {
+  sc <- minnow_it %>% set_param(c(kd=42, hb=123)) %>% set_bounds(list(kd=c(0, 1)))
+  data <- data.frame(time=0:5, S=1, id="foo")
+  par <- c("kd")
+  moptim <- function(par, method=NA_character_, ...) list(convergence=0, par=par, method=method)
+
+  # single parameter -> use Brent
+  rs <- with_mocked_bindings(calibrate(sc, data=data, par=c("kd"), output="S", verbose=FALSE),
+                             optim = moptim)
+  expect_equal(rs$method, "Brent")
+
+  # multiple parameters -> use Nelder-Mead
+  rs <- with_mocked_bindings(calibrate(sc, data=data, par=c("kd", "hb"), output="S", verbose=FALSE),
+                             optim = moptim)
+  expect_equal(rs$method, "Nelder-Mead")
+
+  # custom method selected
+  rs <- with_mocked_bindings(calibrate(sc, data=data, par=c("kd", "hb"), output="S", verbose=FALSE, method="foo"),
+                             optim = moptim)
+  expect_equal(rs$method, "foo")
+})
+
+# bounds are derived from scenario's parameter.bounds
+test_that("parameter bounds", {
+  sc <- minnow_it %>% set_bounds(list(kd=c(-2, -1), hb=c(-4, -3)))
+  data <- data.frame(time=0:5, S=1, id="foo")
+  moptim <- function(par, output, upper, lower, ...) list(convergence=0, par=par, upper=upper, lower=lower)
+
+  # Methods that support boundaries
+  with_mocked_bindings(rs <- calibrate(sc, data=data, par="kd", output="S", verbose=FALSE, method="Brent"),
+                       optim = moptim)
+  expect_equal(rs$lower, -2)
+  expect_equal(rs$upper, -1)
+
+  with_mocked_bindings(rs <- calibrate(sc, data=data, par=c("kd", "hb"), output="S", verbose=FALSE, method="L-BFGS-B"),
+                       optim = moptim)
+  expect_equal(rs$lower, c(-2, -4))
+  expect_equal(rs$upper, c(-1, -3))
+
+  # No bounds set
+  expect_error(
+    with_mocked_bindings(rs <- calibrate(sc, data=data, par="alpha", output="S", verbose=FALSE, method="Brent"),
+      optim = moptim)
+  )
+
+  # Bounds not supported by method
+  with_mocked_bindings(rs <- calibrate(sc, data=data, par="kd", output="S", verbose=FALSE, method="Nelder-Mead"),
+                       optim = moptim)
+  expect_equal(rs$lower, -Inf)
+  expect_equal(rs$upper, Inf)
+})
+
+# outdate arguments should still work but raise a warning
 test_that("deprecated arguments", {
-  sc <- minnow_it
-  data <- data.frame(time=0:5, S=1)
+  sc <- minnow_it %>% set_bounds(list(kd=c(0, 1)))
+  data <- data.frame(time=0:5, S=1, id="foo")
   par <- c(kd = 0)
-  moptim <- function(...) list(convergence=0, par=list(kd=0))
+  moptim <- function(output, ...) list(convergence=0, par=list(kd=0), output=output)
 
   # no lifecycle messages
   with_mocked_bindings(calibrate(sc, data=data, par=par, output="S", verbose=FALSE),
@@ -418,8 +493,14 @@ test_that("deprecated arguments", {
   succeed()
 
   # outdated arguments
-  lifecycle::expect_deprecated(
-    with_mocked_bindings(calibrate(sc, data=data, par=par, endpoint="S", verbose=FALSE),
-                       optim = moptim)
+  with_mocked_bindings(
+    lifecycle::expect_deprecated(rs <- calibrate(sc, data=data, par=par, endpoint="S", verbose=FALSE)),
+    optim = moptim
+  )
+  expect_equal(rs$output, "S")
+
+  with_mocked_bindings(
+    lifecycle::expect_deprecated(calibrate(sc, data=data, par=par, output="S", by="id", verbose=FALSE)),
+    optim = moptim
   )
 })

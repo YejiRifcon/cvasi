@@ -257,6 +257,10 @@ is_pckg_avail <- function(name) {
 # @param x `EffectScenario` or `ExposureSeries` object
 # @return `logical`, `TRUE` if no/zero exposure
 is_no_exposure <- function(x) {
+  if(is.list(x))
+    return(sapply(x, is_no_exposure))
+  if(all(is_sequence(x))) # ordering of these checks is important! due to length(sequence) > 1 in most cases
+    return(all(sapply(x@scenarios, is_no_exposure)))
   if(length(x) > 1)
     return(sapply(x, is_no_exposure))
 
